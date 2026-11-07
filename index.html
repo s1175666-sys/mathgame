@@ -1,0 +1,4963 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>苏格拉底式初中数学闯关小游戏</title>
+<style>
+/* =========================================================================
+   一、基础样式与主题变量（简洁干净、面向初中生，不使用低幼卡通风格）
+   ========================================================================= */
+:root{
+  --bg:#f4f6fa;            /* 页面背景 */
+  --card:#ffffff;          /* 卡片背景 */
+  --ink:#1f2937;           /* 主文字 */
+  --ink-2:#6b7280;         /* 次要文字 */
+  --primary:#2563eb;       /* 主色（按钮/强调） */
+  --primary-dark:#1d4ed8;
+  --ai-bubble:#eef2ff;     /* AI 气泡背景 */
+  --me-bubble:#dcfce7;     /* 学生气泡背景 */
+  --gold:#f59e0b;          /* 星星颜色 */
+  --line:#e5e7eb;          /* 边框 */
+  --danger:#dc2626;
+  --radius:14px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  background:var(--bg); color:var(--ink); line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:980px;margin:0 auto;padding:24px 16px 60px;}
+
+/* 视图切换：只有 .view.active 会显示 */
+.view{display:none;}
+.view.active{display:block;animation:fadeIn .25s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:22px;margin-bottom:18px;box-shadow:0 1px 3px rgba(0,0,0,.04);
+}
+h1{font-size:26px;margin:0 0 8px;}
+h2{font-size:18px;margin:0 0 14px;}
+h3{font-size:15px;margin:16px 0 8px;color:var(--ink-2);font-weight:600;}
+.muted{color:var(--ink-2);font-size:14px;}
+
+/* 表单控件 */
+label{display:block;font-size:14px;font-weight:600;margin:12px 0 6px;}
+input[type=text],input[type=password],select,textarea{
+  width:100%;padding:10px 12px;font-size:15px;color:var(--ink);
+  border:1px solid var(--line);border-radius:10px;background:#fff;outline:none;
+  font-family:inherit;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.12);}
+textarea{resize:vertical;min-height:76px;}
+
+/* 单选卡片（模式选择） */
+.mode-group{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;}
+.mode-option{
+  flex:1 1 260px;border:2px solid var(--line);border-radius:12px;padding:14px 16px;
+  cursor:pointer;display:flex;gap:10px;align-items:flex-start;background:#fbfcfe;
+  transition:border-color .15s, background .15s;
+}
+.mode-option.active{border-color:var(--primary);background:#eff6ff;}
+.mode-option input{margin-top:5px;}
+.mode-option .t{font-weight:700;font-size:15px;}
+.mode-option .d{font-size:13px;color:var(--ink-2);}
+
+/* 按钮 */
+.btn{
+  display:inline-block;border:none;border-radius:10px;padding:11px 20px;font-size:15px;
+  font-weight:600;cursor:pointer;background:var(--primary);color:#fff;
+  transition:background .15s, opacity .15s;
+}
+.btn:hover{background:var(--primary-dark);}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line);}
+.btn.ghost:hover{background:#f9fafb;}
+.btn.small{padding:8px 14px;font-size:14px;}
+.btn.wide{width:100%;}
+
+/* 顶部条 */
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;}
+.badge{
+  display:inline-block;background:#eff6ff;color:var(--primary);font-size:13px;
+  font-weight:600;padding:3px 10px;border-radius:999px;margin-right:8px;
+}
+
+/* 题目区 */
+.question-box{
+  background:#fffdf5;border:1px dashed #f0d68a;border-radius:12px;padding:14px 16px;
+  font-size:16px;
+}
+.question-box .qt{font-size:13px;color:#a16207;font-weight:700;letter-spacing:.5px;}
+
+/* 进度面板 */
+.progress-row{display:flex;gap:18px;align-items:center;flex-wrap:wrap;font-size:14px;}
+.stage-chip{font-weight:700;color:var(--primary);}
+.stars{font-size:22px;letter-spacing:3px;color:var(--gold);line-height:1;}
+.stars .off{color:#d1d5db;}
+.hint-chip{color:var(--ink-2);}
+.hint-chip b{color:var(--ink);}
+
+/* 对话气泡 */
+.chat{
+  height:340px;overflow-y:auto;background:#f9fafb;border:1px solid var(--line);
+  border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;
+}
+.bubble{max-width:82%;padding:10px 14px;border-radius:14px;font-size:15px;white-space:pre-wrap;word-break:break-word;}
+.bubble.ai{align-self:flex-start;background:var(--ai-bubble);border-bottom-left-radius:4px;}
+.bubble.me{align-self:flex-end;background:var(--me-bubble);border-bottom-right-radius:4px;}
+.bubble.sys{
+  align-self:center;background:#fee2e2;color:var(--danger);font-size:13px;
+  max-width:92%;text-align:center;
+}
+.bubble .who{display:block;font-size:11px;font-weight:700;opacity:.6;margin-bottom:2px;}
+.bubble img{max-width:220px;border-radius:8px;display:block;margin-top:6px;border:1px solid rgba(0,0,0,.08);}
+/* 加载提示动画 */
+.loading-dots::after{content:"";animation:dots 1.2s steps(4,end) infinite;}
+@keyframes dots{0%{content:"";}25%{content:"·";}50%{content:"· ·";}75%{content:"· · ·";}}
+
+/* 图片上传区 */
+.upload-box{
+  border:2px dashed var(--line);border-radius:12px;padding:16px;text-align:center;background:#fcfcfd;
+}
+.upload-box input[type=file]{width:100%;}
+.preview-wrap{display:none;margin-top:12px;align-items:center;gap:12px;}
+.preview-wrap.show{display:flex;}
+.preview-wrap img{width:96px;height:96px;object-fit:cover;border-radius:10px;border:1px solid var(--line);}
+.preview-wrap .meta{font-size:13px;color:var(--ink-2);}
+
+/* 操作栏 */
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center;}
+
+/* 学生自主声明已掌握 的勾选框 */
+.master-check{
+  display:flex;align-items:center;gap:8px;margin:12px 0 0;padding:10px 12px;
+  background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;
+  font-size:14px;font-weight:500;color:#166534;cursor:pointer;
+}
+.master-check input{width:17px;height:17px;accent-color:#16a34a;cursor:pointer;flex:none;}
+
+/* 复盘页 */
+.review-list{max-height:52vh;overflow-y:auto;background:#f9fafb;border:1px solid var(--line);
+  border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;}
+.big-stars{font-size:34px;color:var(--gold);letter-spacing:6px;}
+.big-stars .off{color:#d1d5db;}
+
+/* toast 轻提示 */
+#toast{
+  position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);
+  background:#111827;color:#fff;padding:10px 18px;border-radius:999px;font-size:14px;
+  opacity:0;pointer-events:none;transition:opacity .2s, transform .2s;z-index:99;max-width:86vw;
+}
+#toast.show{opacity:.95;transform:translateX(-50%) translateY(0);}
+
+/* 教师端：指标卡 */
+.teacher-metrics{display:flex;gap:14px;flex-wrap:wrap;}
+.metric{
+  flex:1 1 150px;background:#f9fafb;border:1px solid var(--line);border-radius:12px;
+  padding:16px;text-align:center;
+}
+.metric-value{font-size:26px;font-weight:700;color:var(--primary);line-height:1.2;}
+.metric-label{font-size:13px;color:var(--ink-2);margin-top:6px;}
+
+/* 教师端：表格 */
+.table-wrap{overflow-x:auto;}
+.dash-table{width:100%;border-collapse:collapse;font-size:14px;min-width:900px;}
+.dash-table th,.dash-table td{
+  border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:middle;
+}
+.dash-table th{color:var(--ink-2);font-weight:600;background:#f9fafb;white-space:nowrap;}
+.dash-table td.q-cell{max-width:150px;}
+.tag-ok{color:#15803d;font-weight:600;}
+.tag-diff{font-size:12px;color:var(--ink-2);}
+
+/* 弹窗通用样式 */
+.modal-mask{
+  display:none;position:fixed;inset:0;background:rgba(17,24,39,.5);
+  z-index:80;align-items:center;justify-content:center;padding:20px;
+}
+.modal-mask.show{display:flex;}
+.modal-box{
+  background:#fff;border-radius:14px;max-width:560px;width:100%;
+  padding:20px;box-shadow:0 10px 40px rgba(0,0,0,.25);animation:fadeIn .2s ease;
+}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.modal-close{
+  border:none;background:transparent;font-size:26px;line-height:1;color:var(--ink-2);
+  cursor:pointer;padding:0 4px;
+}
+.modal-close:hover{color:var(--ink);}
+.vault-err{color:#dc2626;font-size:13px;min-height:18px;margin:6px 0 0;}
+
+/* 教师端：某位学生的全部答题记录（弹窗内滚动列表） */
+.sq-list{
+  max-height:58vh;overflow-y:auto;display:flex;flex-direction:column;gap:10px;
+  padding-right:4px;
+}
+.sq-item{
+  background:#fcfcfd;border:1px solid var(--line);border-radius:10px;
+  padding:12px 14px;
+}
+.sq-q{margin:0 0 7px;font-size:15px;line-height:1.55;word-break:break-word;}
+.sq-meta{display:flex;gap:7px;flex-wrap:wrap;font-size:12px;color:var(--ink-2);}
+.sq-meta span{background:#f3f4f6;border-radius:6px;padding:2px 8px;white-space:nowrap;}
+
+/* 登录页 */
+.login-card{max-width:440px;margin:5vh auto 0;}
+.login-card h1{font-size:24px;}
+.login-err{color:#dc2626;font-size:13px;min-height:20px;margin:8px 0 0;}
+.login-hint{
+  background:#f9fafb;border:1px solid var(--line);border-radius:10px;
+  padding:10px 12px;font-size:13px;color:var(--ink-2);margin-top:14px;
+}
+
+/* 右上角：当前用户 + 退出登录 */
+.user-bar{
+  display:flex;justify-content:flex-end;align-items:center;gap:8px;
+  margin-bottom:12px;
+}
+.user-chip{
+  background:#fff;border:1px solid var(--line);border-radius:999px;
+  padding:7px 14px;font-size:13px;font-weight:600;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);white-space:nowrap;
+}
+.user-chip .role{color:var(--primary);}
+.user-bar .btn{padding:7px 14px;font-size:13px;white-space:nowrap;}
+
+/* 单机模式提示条 */
+.local-banner{
+  background:#fffbeb;border:1px solid #fde68a;color:#92400e;
+  border-radius:10px;padding:10px 14px;font-size:13px;margin-bottom:16px;
+}
+
+/* 教师端：学生概览表 */
+.student-row:hover td{background:#f9fafb;}
+.analysis-line{
+  background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;
+  padding:10px 14px;font-size:14px;color:#1e3a8a;margin-top:12px;
+}
+
+/* 学生端：同学情况 */
+.recent-list{list-style:none;margin:0;padding:0;}
+.recent-list li{
+  display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+  padding:9px 0;border-bottom:1px dashed var(--line);font-size:14px;
+}
+.recent-list li:last-child{border-bottom:none;}
+.recent-list .who{font-weight:700;}
+.recent-list .meta{color:var(--ink-2);font-size:13px;}
+.rank-chip{
+  display:inline-block;min-width:26px;text-align:center;font-weight:700;
+  color:var(--primary);font-size:13px;
+}
+
+/* =========================================================================
+   游戏化：学园档案 / 等级 / 成就墙 / 关卡地图 / 庆祝动效
+   ========================================================================= */
+.profile-head{display:flex;gap:16px;align-items:center;flex-wrap:wrap;}
+.level-badge{
+  width:66px;height:66px;border-radius:18px;flex:none;color:#fff;
+  background:linear-gradient(135deg,#2563eb,#7c3aed);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  box-shadow:0 8px 20px rgba(37,99,235,.28);
+}
+.level-badge b{font-size:26px;line-height:1;}
+.level-badge small{font-size:10px;letter-spacing:1px;opacity:.9;margin-top:3px;}
+.profile-main{flex:1 1 240px;min-width:190px;}
+.profile-main h2{margin:0;font-size:19px;}
+.profile-main .muted{margin:2px 0 0;font-size:13px;}
+.xp-bar{height:10px;border-radius:999px;background:#eef2f7;overflow:hidden;margin-top:10px;}
+.xp-fill{
+  height:100%;width:0;border-radius:999px;
+  background:linear-gradient(90deg,#38bdf8,#2563eb,#7c3aed);
+  transition:width .5s ease;
+}
+.xp-text{font-size:12px;color:var(--ink-2);margin:5px 0 0;}
+.stat-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;}
+.stat-chip{
+  background:#f8fafc;border:1px solid var(--line);border-radius:999px;
+  padding:5px 12px;font-size:13px;color:var(--ink-2);
+}
+.stat-chip b{color:var(--ink);font-size:14px;}
+
+/* 关卡地图：五步思考脉络的可视化 */
+.stage-map{display:flex;margin-top:16px;}
+.stage-node{flex:1 1 0;position:relative;text-align:center;min-width:56px;}
+.stage-node:not(:last-child)::after{
+  content:"";position:absolute;top:13px;left:calc(50% + 17px);right:calc(-50% + 17px);
+  height:2px;background:var(--line);z-index:0;transition:background .25s;
+}
+.stage-node.done:not(:last-child)::after{background:#34d399;}
+.stage-node .dot{
+  position:relative;z-index:1;width:28px;height:28px;border-radius:50%;margin:0 auto;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;color:var(--ink-2);
+  background:#fff;border:2px solid var(--line);transition:all .25s;
+}
+.stage-node .cap{display:block;font-size:11px;color:var(--ink-2);margin-top:6px;line-height:1.35;}
+.stage-node.done .dot{background:#34d399;border-color:#34d399;color:#fff;}
+.stage-node.current .dot{border-color:var(--primary);color:var(--primary);box-shadow:0 0 0 4px rgba(37,99,235,.14);}
+.stage-node.current .cap{color:var(--primary);font-weight:600;}
+
+/* 星星点亮动画 */
+.stars.pop{animation:starPop .45s ease;}
+@keyframes starPop{0%{transform:scale(1);}45%{transform:scale(1.35);}100%{transform:scale(1);}}
+
+/* 本关收获 */
+.reward-row{display:flex;gap:12px;flex-wrap:wrap;}
+.reward-item{
+  flex:1 1 170px;display:flex;gap:10px;align-items:center;
+  background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:12px 14px;
+}
+.reward-item .r-icon{font-size:24px;line-height:1;}
+.reward-item b{display:block;font-size:16px;}
+.reward-item .muted{font-size:12px;}
+.levelup{
+  background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;
+  border-radius:10px;padding:10px 14px;font-size:14px;font-weight:600;margin:14px 0 0;
+}
+.new-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+.new-badge{
+  background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;
+  border-radius:999px;padding:6px 14px;font-size:13px;font-weight:600;
+}
+.proverb{
+  background:#fffbeb;border:1px dashed #fcd34d;border-radius:10px;
+  padding:12px 14px;font-size:14px;color:#92400e;margin:14px 0 0;line-height:1.6;
+}
+
+/* 成就墙 */
+.badge-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;
+  max-height:56vh;overflow-y:auto;padding-right:4px;margin-top:12px;
+}
+.badge-card{
+  display:flex;gap:10px;align-items:flex-start;
+  border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff;
+}
+.badge-card.locked{background:#f9fafb;}
+.badge-card .b-icon{font-size:24px;line-height:1;filter:grayscale(1);opacity:.55;}
+.badge-card.earned .b-icon{filter:none;opacity:1;}
+.badge-card.earned{border-color:#bfdbfe;background:#f5f9ff;}
+.badge-card .b-name{font-size:14px;font-weight:700;}
+.badge-card .b-desc{font-size:12px;color:var(--ink-2);margin-top:3px;line-height:1.45;}
+
+/* 庆祝彩带 */
+#celebrateLayer{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:120;}
+.confetti{position:absolute;top:-24px;border-radius:2px;animation:confettiFall 1.9s ease-in forwards;}
+@keyframes confettiFall{
+  0%{transform:translateY(-20px) rotate(0deg);opacity:1;}
+  100%{transform:translateY(95vh) rotate(600deg);opacity:0;}
+}
+
+/* 等级小标签 */
+.lvl-tag{color:#7c3aed;font-weight:600;}
+
+/* =========================================================================
+   雷霆战机 · 数学空战
+   ========================================================================= */
+.shooter-setup{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;}
+.shooter-setup > div{flex:1 1 260px;}
+.shooter-setup .btn{flex:none;}
+
+.shooter-hud{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+.shooter-question{
+  font-size:clamp(18px,2.4vw,25px);font-weight:700;color:var(--ink);
+  background:#fffdf5;border:1px dashed #f0d68a;border-radius:10px;
+  padding:10px 14px;line-height:1.4;
+}
+.shooter-meta{display:flex;gap:16px;flex-wrap:wrap;font-size:14px;color:var(--ink-2);}
+.shooter-meta .hp{color:#ef4444;letter-spacing:2px;font-size:16px;}
+.shooter-meta #shooterScore{color:var(--primary);font-weight:700;}
+.shooter-meta #shooterCombo{color:#7c3aed;font-weight:600;}
+.shooter-feedback{min-height:20px;font-size:13px;line-height:1.5;}
+.shooter-feedback.ok{color:#047857;font-weight:600;}
+.shooter-feedback.bad{color:#b91c1c;font-weight:600;}
+
+.canvas-wrap{
+  position:relative;width:100%;aspect-ratio:900/560;
+  border-radius:14px;overflow:hidden;background:#070b1f;
+  border:1px solid #1e293b;box-shadow:0 8px 30px rgba(2,6,23,.18);
+}
+#shooterCanvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair;}
+
+.shooter-overlay{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:12px;
+  padding:24px;text-align:center;color:#e2e8f0;
+  background:radial-gradient(120% 120% at 50% 0%,rgba(15,23,42,.94),rgba(2,6,23,.98));
+  backdrop-filter:blur(2px);
+  -webkit-backdrop-filter:blur(2px);
+  overflow-y:auto;
+}
+.shooter-overlay h2{margin:0;font-size:26px;color:#fff;}
+.shooter-overlay p{margin:0;max-width:620px;color:#cbd5e1;font-size:14px;line-height:1.65;}
+.shooter-overlay .overlay-hint{font-size:12px;color:#94a3b8;}
+.shooter-overlay .btn{flex:none;}
+
+#shooterResult{justify-content:flex-start;padding-top:22px;}
+#shooterResult .result-inner{width:100%;max-width:660px;text-align:left;}
+#shooterResult h2{text-align:center;font-size:23px;}
+.result-stars{
+  text-align:center;font-size:30px;letter-spacing:5px;color:#fbbf24;
+  line-height:1.2;margin:2px 0 6px;
+}
+#shooterResultSummary{text-align:center;color:#e2e8f0;font-size:14px;margin-bottom:6px;}
+.result-reward{text-align:center;color:#93c5fd;font-size:13px;margin-bottom:10px;}
+.mistake-list{max-height:36vh;overflow-y:auto;text-align:left;}
+.mistake-list > p{margin:8px 0 6px;color:#e2e8f0;}
+.mistake-item{
+  background:rgba(15,23,42,.72);border:1px solid #334155;border-radius:10px;
+  padding:10px 12px;margin-bottom:8px;
+}
+.mistake-item .m-q{font-size:14px;font-weight:700;color:#f1f5f9;}
+.mistake-item .m-a{font-size:13px;color:#fca5a5;margin-top:3px;}
+.mistake-item .m-a b{color:#4ade80;}
+.mistake-item .m-e{font-size:12px;color:#94a3b8;margin-top:3px;line-height:1.55;}
+.shooter-tip{margin:10px 0 0;font-size:12px;}
+
+/* =========================================================================
+   应用题侦探
+   ========================================================================= */
+.detective-brief{
+  background:#f8fafc;border:1px solid var(--line);border-radius:12px;
+  padding:14px 16px;font-size:14px;line-height:1.8;margin-top:14px;color:var(--ink-2);
+}
+.detective-brief b{color:var(--ink);}
+.detective-suspects-preview{
+  display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+  margin-top:14px;font-size:13px;color:var(--ink-2);
+}
+.suspect-chip{
+  background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;
+  border-radius:999px;padding:3px 12px;font-size:13px;
+}
+
+.detective-dots{display:flex;gap:8px;margin-top:12px;}
+.detective-dot{
+  width:30px;height:30px;border-radius:50%;background:#f1f5f9;border:2px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--ink-2);
+}
+.detective-dot.done{background:#dcfce7;border-color:#34d399;color:#047857;}
+.detective-dot.current{border-color:var(--primary);color:var(--primary);box-shadow:0 0 0 4px rgba(37,99,235,.12);}
+
+.detective-loc{
+  display:inline-block;background:#eff6ff;color:var(--primary);
+  font-size:12px;font-weight:700;letter-spacing:.5px;padding:3px 10px;border-radius:999px;
+}
+#detectiveSceneTitle{margin:10px 0 4px;font-size:20px;}
+#detectiveStory{margin:0 0 14px;}
+.detective-answer-row{display:flex;gap:10px;flex-wrap:wrap;}
+.detective-answer-row input{flex:1 1 180px;}
+.detective-answer-row .btn{flex:none;}
+.detective-feedback{min-height:22px;font-size:14px;line-height:1.6;margin-top:10px;white-space:pre-line;}
+.detective-feedback.ok{color:#047857;font-weight:600;}
+.detective-feedback.bad{color:#b91c1c;font-weight:600;}
+.hint-box{
+  background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;
+  padding:10px 14px;font-size:14px;color:#1e3a8a;margin-top:10px;line-height:1.7;
+}
+.hint-box p{margin:0 0 4px;}
+.hint-box p:last-child{margin:0;}
+.clue-box{
+  background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;
+  padding:14px 16px;margin-top:14px;animation:fadeIn .3s ease;
+}
+.clue-box .clue-title{font-weight:700;color:#166534;font-size:14px;}
+.clue-box p{margin:6px 0 10px;font-size:14px;line-height:1.7;color:#14532d;}
+.clue-box .btn{background:#16a34a;}
+.clue-box .btn:hover{background:#15803d;}
+
+.clue-board{display:flex;flex-direction:column;gap:8px;margin:12px 0 16px;}
+.clue-board-item{
+  background:#f8fafc;border:1px solid var(--line);border-left:4px solid #34d399;
+  border-radius:10px;padding:10px 14px;font-size:14px;
+}
+.clue-board-item .cb-title{font-weight:700;font-size:13px;color:#047857;margin-bottom:2px;}
+.clue-board-item .cb-text{color:var(--ink-2);line-height:1.6;}
+
+.suspect-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+.suspect-card{
+  border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:#fff;
+  display:flex;flex-direction:column;gap:8px;
+}
+.suspect-card h3{margin:0;font-size:16px;}
+.suspect-card .s-role{font-size:12px;color:var(--ink-2);font-weight:400;margin-left:4px;}
+.suspect-card ul{margin:0;padding-left:18px;font-size:13px;color:var(--ink-2);line-height:1.7;}
+.suspect-card .btn{align-self:flex-start;}
+
+/* 响应式：适配平板 / 手机 */
+@media (max-width:720px){
+  .wrap{padding:16px 12px 48px;}
+  h1{font-size:22px;}
+  .chat{height:300px;}
+  .bubble{max-width:92%;}
+  .btn{flex:1 1 auto;}
+  .stage-node .cap{font-size:10px;}
+  .level-badge{width:56px;height:56px;border-radius:15px;}
+  .level-badge b{font-size:22px;}
+  .shooter-overlay{padding:16px;gap:8px;}
+  .shooter-overlay h2{font-size:21px;}
+  .shooter-overlay p{font-size:12.5px;}
+  .shooter-question{font-size:17px;padding:8px 10px;}
+  .shooter-meta{gap:10px;font-size:12.5px;}
+  .mistake-list{max-height:30vh;}
+  .shooter-setup .btn{flex:1 1 auto;}
+  .detective-answer-row .btn{flex:1 1 auto;}
+  .detective-answer-row input{flex:1 1 100%;}
+  .detective-suspects-preview{font-size:12px;}
+  .suspect-grid{grid-template-columns:1fr;}
+  #detectiveSceneTitle{font-size:18px;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- 右上角：当前登录用户 + 音效开关 + 退出登录（登录后显示） -->
+<div id="userBar" class="user-bar" style="display:none;">
+  <span class="user-chip" id="userChip">学生</span>
+  <button class="btn ghost small" id="btnSound" title="开关游戏音效">🔊 音效开</button>
+  <button class="btn ghost small" id="btnLogout">退出登录</button>
+</div>
+
+<!-- =======================================================================
+     视图 0：登录页（教师 / 学生共用入口，账号由内存数据库校验）
+     ======================================================================= -->
+<section id="view-login" class="view active">
+  <div class="card login-card">
+    <h1>苏格拉底式初中数学闯关</h1>
+
+    <div id="loginPane">
+      <p class="muted">请先登录。教师账号进入班级看板，学生账号进入闯关练习。</p>
+
+      <label for="loginUser">账号</label>
+      <input type="text" id="loginUser" placeholder="请输入账号" autocomplete="username" maxlength="20" />
+
+      <label for="loginPass">密码</label>
+      <input type="password" id="loginPass" placeholder="请输入密码" autocomplete="current-password" maxlength="64" />
+
+      <p class="login-err" id="loginErr"></p>
+
+      <div class="controls">
+        <button class="btn wide" id="btnLogin">登录</button>
+      </div>
+
+      <div class="controls">
+        <button class="btn ghost wide" id="btnShowRegister">注册学生账号</button>
+      </div>
+
+      <div class="login-hint">
+        <b>单机版内置账号</b>（密码都是 123456）<br />
+        教师：<b>teacher</b>　学生：<b>xiaoming</b>（小明）、<b>xiaohong</b>（小红）<br />
+        想用自己的名字，就点「注册学生账号」新建一个。
+      </div>
+
+      <div class="login-hint">
+        第一次使用？点击「注册学生账号」，设置自己的用户名、姓名和密码。
+        登录后，答题记录会自动记到你的账号和姓名下，老师能看到每位同学的情况。
+      </div>
+    </div>
+
+    <div id="registerPane" style="display:none;">
+      <p class="muted">注册一个学生账号，用用户名和密码登录，答题记录会自动计入你的姓名。</p>
+
+      <label for="regUser">用户名</label>
+      <input type="text" id="regUser" placeholder="3-20 位字母、数字或下划线" autocomplete="username" maxlength="20" />
+
+      <label for="regName">学生姓名</label>
+      <input type="text" id="regName" placeholder="真实姓名，老师看到的名字" autocomplete="name" maxlength="16" />
+
+      <label for="regPass">密码</label>
+      <input type="password" id="regPass" placeholder="至少 6 位" autocomplete="new-password" maxlength="64" />
+
+      <label for="regPass2">确认密码</label>
+      <input type="password" id="regPass2" placeholder="再输入一次密码" autocomplete="new-password" maxlength="64" />
+
+      <p class="login-err" id="regErr"></p>
+
+      <div class="controls">
+        <button class="btn wide" id="btnRegister">注册并登录</button>
+      </div>
+
+      <div class="controls">
+        <button class="btn ghost wide" id="btnBackLogin">返回登录</button>
+      </div>
+
+      <div class="login-hint">
+        用户名用于登录，注册后不能重复；学生姓名会显示在教师端和同学榜中。
+        忘记密码请联系老师。
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =======================================================================
+     视图 1：首页（项目标题、简介、难度、模式选择、API 配置）
+     ======================================================================= -->
+<section id="view-home" class="view">
+  <div id="localBanner" class="local-banner" style="display:none;">
+    纯单机模式：账号和答题记录只保存在本页内存里（代码里的数组/对象），刷新或关闭页面就会清空，不会写入磁盘，也不会上传。
+  </div>
+
+  <div class="card">
+    <h1>苏格拉底式初中数学闯关</h1>
+    <p class="muted">
+      AI 老师只提问、不给答案，用苏格拉底式反问陪你想清楚每一步；说对结果还要讲清思路，答错了老师会引导你自己发现问题。
+      题目由 AI 按你选的题型和难度现出，每次都不一样。课程项目原型：闯关与 AI 对话在浏览器里完成，账号与答题记录先放在本页内存中（单机演示版）。
+    </p>
+
+    <!-- 难度选择 -->
+    <label for="selDifficulty">难度</label>
+    <select id="selDifficulty">
+      <option value="basic">基础（一元一次方程）</option>
+      <option value="advanced">进阶（需要一定分析）</option>
+    </select>
+
+    <!-- 题型选择：动态出题的题目类型 -->
+    <label for="selTopic">题型（AI 会按这个类型动态出题）</label>
+    <select id="selTopic">
+      <option value="auto">随机（各类应用题混合）</option>
+      <option value="ratio">和差倍分问题</option>
+      <option value="travel">行程问题（相遇/追及）</option>
+      <option value="work">工程问题</option>
+      <option value="profit">销售利润问题</option>
+      <option value="age">年龄问题</option>
+      <option value="geometry">几何周长面积问题</option>
+      <option value="concentration">浓度配比问题</option>
+    </select>
+
+    <!-- 模式选择 -->
+    <label>模式选择</label>
+    <div class="mode-group">
+      <label class="mode-option active" for="modeText">
+        <input type="radio" name="gameMode" id="modeText" value="text" checked />
+        <span>
+          <span class="t">文字闯关模式</span>
+          <span class="d">AI 老师连续引导，苏格拉底式反问，想通并讲清思路后生成复盘。</span>
+        </span>
+      </label>
+      <label class="mode-option" for="modeImage">
+        <input type="radio" name="gameMode" id="modeImage" value="image" />
+        <span>
+          <span class="t">上传图片批改模式</span>
+          <span class="d">把手写解题过程拍照上传，AI 老师先看懂你写了什么，再一步一步追问。</span>
+        </span>
+      </label>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="btnStart">开始闯关</button>
+    </div>
+  </div>
+
+  <!-- API 配置已内嵌到 JS 顶部常量区（TEXT_API_URL / VISION_API_URL 等），
+       首页不再展示配置卡片，用户打开页面即可直接开始闯关。 -->
+
+  <!-- 学生端：学园档案（等级 / 经验 / 徽章，全部由本页记录实时推导） -->
+  <div class="card" id="profileCard">
+    <div class="profile-head">
+      <div class="level-badge"><b id="profileLevel">1</b><small>LEVEL</small></div>
+      <div class="profile-main">
+        <h2 id="profileTitle">见习学徒</h2>
+        <p class="muted" id="profileSub">完成题目获得经验值，升级解锁新称号。</p>
+        <div class="xp-bar"><div class="xp-fill" id="xpFill"></div></div>
+        <p class="xp-text" id="xpText">0 / 60 XP</p>
+      </div>
+      <button class="btn ghost small" id="btnOpenBadges">🏅 成就墙</button>
+    </div>
+    <div class="stat-chips">
+      <span class="stat-chip"><b id="statDone">0</b> 完成题目</span>
+      <span class="stat-chip"><b id="statStars">0</b> 累计星星</span>
+      <span class="stat-chip"><b id="statStreak">0</b> 连续无提示</span>
+      <span class="stat-chip"><b id="statBadges">0</b> 枚徽章</span>
+    </div>
+  </div>
+
+  <!-- 学生端：雷霆战机 · 数学空战（纯本地 Canvas 小游戏） -->
+  <div class="card" id="shooterCard">
+    <h2>🚀 雷霆战机 · 数学空战</h2>
+    <p class="muted" style="margin-top:0;">
+      敌机身上写着候选答案。先算出题目，再击落写着<b>正确答案</b>的那一架——打错或放跑正确答案都会掉血。
+      每局 10 题，结束后有错题回顾，成绩会记入学习记录并结算经验与徽章。
+    </p>
+    <div class="shooter-setup">
+      <div>
+        <label for="selShooterDifficulty" style="margin-top:0;">难度</label>
+        <select id="selShooterDifficulty">
+          <option value="basic">基础（口算 + 一步方程）</option>
+          <option value="advanced">进阶（两步方程 + 百分数）</option>
+        </select>
+      </div>
+      <button class="btn" id="btnShooterStart">进入战机</button>
+    </div>
+  </div>
+
+  <!-- 学生端：应用题侦探（剧情 + 应用题 + 线索推理） -->
+  <div class="card" id="detectiveCard">
+    <h2>🕵️ 应用题侦探 · 金算盘失窃案</h2>
+    <p class="muted" style="margin-top:0;">
+      学园祭前夜，数学教室的「金算盘奖杯」不见了。走访 5 个现场，用一元一次方程解开线索，
+      再对照四名嫌疑人的身高、行踪和习惯，指认拿走奖杯的人。卡住时有分级提示，不会做不下去。
+    </p>
+    <div class="controls">
+      <button class="btn" id="btnDetectiveEntry">进入案件</button>
+      <span class="tag-diff">约 8 分钟 · 5 道应用题 · 1 次指认</span>
+    </div>
+  </div>
+
+  <!-- 学生端：查看班级同学情况（单机版同样可用，数据来自本页内存） -->
+  <div class="card" id="classCard">
+    <h2>班级</h2>
+    <p class="muted" style="margin-top:0;">看看班里其他同学完成了多少题、平均要几轮想清楚，也可以对照一下自己的节奏。</p>
+    <div class="controls" style="margin-top:0;">
+      <button class="btn ghost" id="btnOpenClass">查看同学答题情况</button>
+    </div>
+  </div>
+</section>
+
+<!-- =======================================================================
+     视图 2：闯关主页面（公共板块 + 按模式切换的控件）
+     ======================================================================= -->
+<section id="view-game" class="view">
+
+  <!-- 顶部：返回 + 模式标识 -->
+  <div class="card topbar">
+    <div>
+      <span class="badge" id="badgeMode">文字闯关</span>
+      <span class="badge" id="badgeDifficulty">基础</span>
+    </div>
+    <button class="btn ghost small" id="btnBackHome">返回首页</button>
+  </div>
+
+  <!-- ① 题目展示区 -->
+  <div class="card">
+    <div class="question-box">
+      <span class="qt">当前应用题</span>
+      <div id="questionText">（暂无题目）</div>
+    </div>
+  </div>
+
+  <!-- ③ 进度面板：文字进度 + 五步关卡地图 -->
+  <div class="card">
+    <div class="progress-row">
+      <span class="stage-chip" id="stageInfo">思考进度：0 / 5</span>
+      <span class="stars" id="starInfo"></span>
+      <span class="hint-chip" id="hintInfo">已用提示：<b>0</b> / 2</span>
+    </div>
+    <div class="stage-map" id="stageMap"></div>
+  </div>
+
+  <!-- ② 对话气泡区域 -->
+  <div class="card">
+    <h2>与导师的对话</h2>
+    <div class="chat" id="chatArea"></div>
+  </div>
+
+  <!-- 模式 A 控件：文字闯关 -->
+  <div class="card" id="controlsText">
+    <h2>你的回答</h2>
+    <textarea id="inpAnswer" placeholder="在这里说说你的想法，老师会继续追问引导你……"></textarea>
+
+    <!-- 学生自主声明已掌握：勾选后按“掌握、1 轮”记入教师端并结束本题 -->
+    <label class="master-check" for="chkMastered">
+      <input type="checkbox" id="chkMastered" />
+      <span>我已经掌握这道题了（勾选后结束本题，教师端会记为“正确”）</span>
+    </label>
+
+    <div class="controls">
+      <button class="btn" id="btnSubmitText">提交文字回答</button>
+      <button class="btn ghost" id="btnHint">请求提示（剩 2 次）</button>
+      <button class="btn ghost" id="btnResetText">重置闯关</button>
+      <button class="btn ghost" id="btnChangeQuestion">换一道题</button>
+    </div>
+  </div>
+
+  <!-- 模式 B 控件：图片批改（新增） -->
+  <div class="card" id="controlsImage" style="display:none;">
+    <h2>上传手写解题过程</h2>
+    <div class="upload-box">
+      <input type="file" id="inpFile" accept="image/png,image/jpeg" />
+      <p class="muted" style="margin:8px 0 0;">仅支持 jpg / png，建议拍摄清晰、光线充足的手写演算照片</p>
+      <div class="preview-wrap" id="previewWrap">
+        <img id="previewImg" alt="上传图片预览" />
+        <div class="meta">
+          已选择图片，点击【提交图片】发送给导师<br />
+          <button class="btn ghost small" id="btnClearImage" style="margin-top:6px;">移除图片</button>
+        </div>
+      </div>
+    </div>
+
+    <p class="muted" style="margin:14px 0 6px;">
+      也可以不打字、不拍照，直接在纸上接着写；或者在这里用文字回答老师的问题：
+    </p>
+    <textarea id="inpImageAnswer" placeholder="（可选）用文字回答老师的问题，例如：我觉得应该先算……"></textarea>
+
+    <!-- 图片模式下同样允许学生自评“已掌握” -->
+    <label class="master-check" for="chkMasteredImg">
+      <input type="checkbox" id="chkMasteredImg" />
+      <span>我已经掌握这道题了（勾选后结束本题，教师端会记为“正确”）</span>
+    </label>
+
+    <div class="controls">
+      <button class="btn" id="btnSubmitImage">提交图片</button>
+      <button class="btn ghost" id="btnChangeImageQuestion">换一道题</button>
+      <button class="btn ghost" id="btnResetImage">重置</button>
+    </div>
+  </div>
+</section>
+
+<!-- =======================================================================
+     视图 2·补：雷霆战机 · 数学空战（Canvas 小游戏，纯离线）
+     ======================================================================= -->
+<section id="view-shooter" class="view">
+  <div class="card topbar">
+    <div>
+      <span class="badge">雷霆战机</span>
+      <span class="badge" id="shooterDiffBadge">基础</span>
+    </div>
+    <button class="btn ghost small" id="btnShooterBack">返回首页</button>
+  </div>
+
+  <div class="card shooter-card">
+    <!-- 顶部 HUD：题目 / 生命 / 得分 / 连击 / 进度 -->
+    <div class="shooter-hud">
+      <div class="shooter-question" id="shooterQuestion">准备起飞…</div>
+      <div class="shooter-meta">
+        <span class="hp" id="shooterHp">♥♥♥</span>
+        <span id="shooterScore">0 分</span>
+        <span id="shooterCombo">连击 0</span>
+        <span id="shooterProgress">0 / 10</span>
+      </div>
+      <div class="shooter-feedback" id="shooterFeedback"></div>
+    </div>
+
+    <div class="canvas-wrap">
+      <canvas id="shooterCanvas" width="900" height="560"></canvas>
+
+      <!-- 开场遮罩 -->
+      <div class="shooter-overlay" id="shooterIntro">
+        <h2>✈️ 准备起飞</h2>
+        <p>拖动战机左右移动，按住开火。先心算题目，再击落写着正确答案的敌机。</p>
+        <p class="overlay-hint">A / D 或 ← / → 移动，空格开火；鼠标或手指拖动移动，按住开火。</p>
+        <button class="btn" id="btnShooterBegin">起飞</button>
+      </div>
+
+      <!-- 结算遮罩 -->
+      <div class="shooter-overlay" id="shooterResult" style="display:none;">
+        <div class="result-inner">
+          <h2 id="shooterResultTitle">任务完成</h2>
+          <div class="result-stars" id="shooterResultStars"></div>
+          <p id="shooterResultSummary"></p>
+          <p class="result-reward" id="shooterResultReward"></p>
+          <div class="mistake-list" id="shooterMistakes"></div>
+          <div class="controls" style="justify-content:center;margin-top:14px;">
+            <button class="btn" id="btnShooterAgain">再来一局</button>
+            <button class="btn ghost" id="btnShooterRetryWrong" style="display:none;">错题重练</button>
+            <button class="btn ghost" id="btnShooterHome">返回首页</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="muted shooter-tip">
+      提示：答错时会把正确答案和一步解法写在题目下方；结算页还能对错题再来一局。
+    </p>
+  </div>
+</section>
+
+<!-- =======================================================================
+     视图 2·补二：应用题侦探（剧情 + 应用题 + 线索推理）
+     ======================================================================= -->
+<section id="view-detective" class="view">
+  <div class="card topbar">
+    <div>
+      <span class="badge">应用题侦探</span>
+      <span class="badge" id="detectiveCaseBadge">金算盘失窃案</span>
+    </div>
+    <div class="controls" style="margin:0;">
+      <button class="btn ghost small" id="btnDetectiveRestart">重新调查</button>
+      <button class="btn ghost small" id="btnDetectiveBack">返回首页</button>
+    </div>
+  </div>
+
+  <!-- 线索进度 -->
+  <div class="card" id="detectiveProgressCard" style="display:none;">
+    <div class="progress-row">
+      <span class="stage-chip" id="detectiveProgressText">线索 0 / 5</span>
+      <span class="hint-chip" id="detectiveScoreText">得分 0</span>
+    </div>
+    <div class="detective-dots" id="detectiveDots"></div>
+  </div>
+
+  <!-- 开场 -->
+  <div class="card" id="detectiveIntro">
+    <h1>🕵️ 应用题侦探</h1>
+    <p class="muted">
+      学园祭前夜 21:00 左右，数学教室的「金算盘奖杯」不见了。教学楼后的小路上留下一串脚印，
+      旧仓库的门也被打开过。当晚留在学校的有四位嫌疑人。
+    </p>
+    <div class="detective-brief">
+      <b>你的任务</b><br />
+      走访 5 个现场，每个现场有一道应用题。用一元一次方程算出答案，就能得到一条线索。
+      集齐线索后，对照四名嫌疑人的身高、行踪和习惯，指认拿走奖杯的人。<br />
+      <span class="muted">答错不会直接给答案：先提示未知量，再提示等量关系，最后才提供完整解法。</span>
+    </div>
+    <div class="detective-suspects-preview">
+      <span>嫌疑人：</span>
+      <span class="suspect-chip">阿杰 · 篮球社</span>
+      <span class="suspect-chip">小美 · 美术社</span>
+      <span class="suspect-chip">老周 · 校工</span>
+      <span class="suspect-chip">琳琳 · 广播站</span>
+    </div>
+    <div class="controls">
+      <button class="btn" id="btnDetectiveStart">开始调查</button>
+    </div>
+  </div>
+
+  <!-- 现场 -->
+  <div class="card" id="detectiveSceneCard" style="display:none;">
+    <div class="detective-loc"><span id="detectiveSceneIndex">现场 1 / 5</span></div>
+    <h2 id="detectiveSceneTitle"></h2>
+    <p class="muted" id="detectiveStory"></p>
+
+    <div class="question-box">
+      <span class="qt">线索题目</span>
+      <div id="detectiveQuestion"></div>
+    </div>
+
+    <label for="detectiveAnswer">你的答案</label>
+    <div class="detective-answer-row">
+      <input type="text" id="detectiveAnswer" inputmode="decimal" autocomplete="off" placeholder="填数字即可，例如 7" />
+      <button class="btn" id="btnDetectiveSubmit">提交</button>
+    </div>
+
+    <div class="controls">
+      <button class="btn ghost" id="btnDetectiveHint">请求提示</button>
+      <button class="btn ghost" id="btnDetectiveSolution" style="display:none;">看解法</button>
+    </div>
+
+    <div class="detective-feedback" id="detectiveFeedback"></div>
+    <div class="hint-box" id="detectiveHintBox" style="display:none;"></div>
+
+    <div class="clue-box" id="detectiveClueBox" style="display:none;">
+      <div class="clue-title">🔎 获得线索</div>
+      <p id="detectiveClueText"></p>
+      <button class="btn" id="btnDetectiveNext">前往下一处</button>
+    </div>
+  </div>
+
+  <!-- 指认 -->
+  <div class="card" id="detectiveAccuse" style="display:none;">
+    <h2>🕯️ 结案：谁拿走了奖杯？</h2>
+    <p class="muted">
+      线索板上的 5 条线索，加上下面四份档案，只有一个人能同时满足。选出你的答案。
+    </p>
+    <div class="clue-board" id="detectiveClueBoard"></div>
+    <div class="suspect-grid" id="detectiveSuspects"></div>
+    <div class="detective-feedback" id="detectiveAccuseFeedback"></div>
+  </div>
+
+  <!-- 结案 -->
+  <div class="card" id="detectiveEnd" style="display:none;">
+    <h1 id="detectiveEndTitle">🎉 案件告破</h1>
+    <p class="muted" id="detectiveEndStory"></p>
+    <div class="big-stars" id="detectiveEndStars"></div>
+    <p style="font-weight:700;margin:6px 0 0;" id="detectiveEndScore"></p>
+    <div class="reward-row" style="margin-top:16px;">
+      <div class="reward-item">
+        <span class="r-icon">✨</span>
+        <div><b id="detectiveEndXp">+0 XP</b><span class="muted" id="detectiveEndRewardHint">经验值</span></div>
+      </div>
+      <div class="reward-item">
+        <span class="r-icon">🏅</span>
+        <div><b id="detectiveEndBadges">0</b><span class="muted">枚新徽章</span></div>
+      </div>
+      <div class="reward-item">
+        <span class="r-icon">⏱️</span>
+        <div><b id="detectiveEndTime">—</b><span class="muted">破案用时</span></div>
+      </div>
+    </div>
+    <div class="new-badges" id="detectiveEndNewBadges"></div>
+    <div class="controls" style="justify-content:center;margin-top:16px;">
+      <button class="btn" id="btnDetectiveAgain">再查一案</button>
+      <button class="btn ghost" id="btnDetectiveEndHome">返回首页</button>
+    </div>
+  </div>
+</section>
+
+<!-- =======================================================================
+     视图 3：复盘结束页面（仅文字闯关模式通关后触发）
+     ======================================================================= -->
+<section id="view-review" class="view">
+  <div class="card" style="text-align:center;">
+    <h1>🎉 想通啦！</h1>
+    <p class="muted">你在这道应用题里完成了完整的思考，并能说清自己的思路。</p>
+    <div class="big-stars" id="reviewStars"></div>
+    <p style="font-weight:700;margin:6px 0 0;" id="reviewStarText">共获得 5 颗星星</p>
+  </div>
+
+  <!-- 本关收获：经验、升级、新徽章、随机箴言 -->
+  <div class="card" id="reviewReward">
+    <h2>本关收获</h2>
+    <div class="reward-row">
+      <div class="reward-item">
+        <span class="r-icon">✨</span>
+        <div><b id="rwXp">+0 XP</b><span class="muted" id="rwXpHint">经验值</span></div>
+      </div>
+      <div class="reward-item">
+        <span class="r-icon">🏅</span>
+        <div><b id="rwBadgeCount">0</b><span class="muted">枚新徽章</span></div>
+      </div>
+      <div class="reward-item">
+        <span class="r-icon">📈</span>
+        <div><b id="rwLevel">Lv.1</b><span class="muted" id="rwTitle">见习学徒</span></div>
+      </div>
+    </div>
+    <p class="levelup" id="rwLevelUp" style="display:none;"></p>
+    <div class="new-badges" id="rwNewBadges"></div>
+    <p class="proverb" id="rwProverb"></p>
+  </div>
+
+  <div class="card">
+    <h2>本次思考复盘（完整对话记录）</h2>
+    <div class="review-list" id="reviewList"></div>
+  </div>
+
+  <div class="card controls" style="justify-content:center;">
+    <button class="btn" id="btnRetry">重新挑战本题</button>
+    <button class="btn ghost" id="btnNewQuestion">选择新题目</button>
+  </div>
+</section>
+
+<!-- =======================================================================
+     视图 4：教师端（成绩看板：答对情况、正确率、每道题的对话轮次）
+     ======================================================================= -->
+<section id="view-teacher" class="view">
+  <div class="card topbar">
+    <div>
+      <h2 style="margin:0;">教师端 · 班级学习情况</h2>
+      <p class="muted" style="margin:4px 0 0;" id="teacherSync">数据来自本页内存（单机版），包含本次打开页面后所有学生的练习记录。</p>
+    </div>
+    <button class="btn ghost small" id="btnTeacherRefresh">刷新数据</button>
+  </div>
+
+  <!-- 概览指标 -->
+  <div class="card">
+    <div class="teacher-metrics">
+      <div class="metric">
+        <div class="metric-value" id="mTotal">0</div>
+        <div class="metric-label">完成题目数</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value" id="mStudents">0</div>
+        <div class="metric-label">参与学生数</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value" id="mAvgRounds">—</div>
+        <div class="metric-label">平均对话轮次</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value" id="mAvgTime">—</div>
+        <div class="metric-label">平均用时</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value" id="mSelfRate">—</div>
+        <div class="metric-label">自评掌握占比</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 学生概览：一个学生一行，点按钮查看该学生的全部题目 -->
+  <div class="card">
+    <h2>学生答题情况</h2>
+    <div class="table-wrap">
+      <table class="dash-table" id="studentTable">
+        <thead>
+          <tr>
+            <th style="width:170px;">学生</th>
+            <th style="width:90px;">完成题数</th>
+            <th style="width:100px;">平均轮次</th>
+            <th style="width:100px;">平均用时</th>
+            <th style="width:90px;">自评占比</th>
+            <th>薄弱题型</th>
+            <th style="width:150px;">最近学习</th>
+            <th style="width:150px;">操作</th>
+          </tr>
+        </thead>
+        <tbody id="studentTableBody"></tbody>
+      </table>
+    </div>
+    <p class="muted" id="studentEmpty" style="margin-top:12px;">还没有学生记录，学生完成一道题后会出现在这里。</p>
+    <div class="analysis-line" id="analysisText" style="display:none;"></div>
+  </div>
+
+  <div class="card controls">
+    <button class="btn ghost" id="btnClearRecords">清空全部记录</button>
+  </div>
+</section>
+
+<!-- =======================================================================
+      视图 5：学生端 · 同学答题情况（只展示汇总数据）
+     ======================================================================= -->
+<section id="view-class" class="view">
+  <div class="card topbar">
+    <div>
+      <h2 style="margin:0;">班级答题情况</h2>
+      <p class="muted" style="margin:4px 0 0;">看看同学们的完成题数、平均轮次和星星，只展示汇总数据。</p>
+    </div>
+    <button class="btn ghost small" id="btnClassBack">返回首页</button>
+  </div>
+
+  <div class="card">
+    <div class="teacher-metrics">
+      <div class="metric">
+        <div class="metric-value" id="cMyTotal">0</div>
+        <div class="metric-label">我的完成题数</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value" id="cMyRounds">—</div>
+        <div class="metric-label">我的平均轮次</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value" id="cClassRounds">—</div>
+        <div class="metric-label">班级平均轮次</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value" id="cStudents">0</div>
+        <div class="metric-label">参与同学数</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>同学榜</h2>
+    <div class="table-wrap">
+      <table class="dash-table" id="classTable">
+        <thead>
+          <tr>
+            <th style="width:60px;">名次</th>
+            <th style="width:130px;">学生</th>
+            <th style="width:90px;">完成题数</th>
+            <th style="width:100px;">平均轮次</th>
+            <th style="width:100px;">平均用时</th>
+            <th style="width:90px;">累计星星</th>
+            <th>最近一次</th>
+          </tr>
+        </thead>
+        <tbody id="classTableBody"></tbody>
+      </table>
+    </div>
+    <p class="muted" id="classEmpty" style="margin-top:12px;">还没有同学的记录，完成一道题后就会出现在这里。</p>
+  </div>
+
+  <div class="card">
+    <h2>最近完成</h2>
+    <ul class="recent-list" id="classRecent"></ul>
+    <p class="muted" id="recentEmpty" style="margin-top:8px;">暂无动态。</p>
+  </div>
+</section>
+
+</div><!-- /wrap -->
+<!-- toast 轻提示（输入校验、错误提示复用） -->
+<div id="toast"></div>
+
+<!-- 某位学生的全部答题记录：教师端点击“查看全部题目”后显示 -->
+<div id="studentQuestionsModal" class="modal-mask">
+  <div class="modal-box" style="max-width:720px;">
+    <div class="modal-head">
+      <h3 style="margin:0;" id="studentQuestionsTitle">学生的答题记录</h3>
+      <button type="button" class="modal-close" id="btnCloseStudentQuestions" title="关闭">×</button>
+    </div>
+    <p class="muted" id="studentQuestionsMeta" style="margin:0 0 12px;"></p>
+    <div class="sq-list" id="studentQuestionsList"></div>
+  </div>
+</div>
+
+<!-- 口令解锁：页面源码里只有密文，输入口令后才在内存中解出真实 Key -->
+<div id="vaultGate" class="modal-mask">
+  <div class="modal-box" style="max-width:420px;">
+    <div class="modal-head">
+      <h3 style="margin:0;">请输入访问口令</h3>
+    </div>
+    <p class="muted" style="margin:0 0 12px;">
+      为了保护 API 密钥，本页的密钥以密文保存，需要口令才能解密使用。口令只在本次页面内存中有效，刷新后需重新输入。
+    </p>
+    <input type="password" id="vaultPass" placeholder="访问口令" autocomplete="off" style="width:100%;box-sizing:border-box;" />
+    <p class="vault-err" id="vaultErr"></p>
+    <div class="controls" style="margin-top:4px;">
+      <button class="btn" id="btnUnlock">解锁并开始</button>
+      <button class="btn ghost" id="btnCancelUnlock">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- 成就墙：展示全部徽章，已获得的点亮 -->
+<div id="badgeModal" class="modal-mask">
+  <div class="modal-box" style="max-width:680px;">
+    <div class="modal-head">
+      <h3 style="margin:0;">🏅 成就墙</h3>
+      <button type="button" class="modal-close" id="btnCloseBadges" title="关闭">×</button>
+    </div>
+    <p class="muted" style="margin:0;" id="badgeProgress">已获得 0 枚徽章</p>
+    <div class="badge-grid" id="badgeGrid"></div>
+  </div>
+</div>
+
+<!-- 彩带庆祝层 -->
+<div id="celebrateLayer"></div>
+
+<script>
+/* =========================================================================
+   二、常量区：内嵌 API 配置 + 题库 + 两套系统提示词
+   （要换接口 / 换密钥 / 换模型，只改下面这几个常量即可）
+   ========================================================================= */
+
+/* --- 内嵌 API 配置（两套独立配置，按模式自动切换，密钥不可混用） ---
+   文字闯关：DeepSeek（OpenAI 兼容接口）
+   图片批改：阿里云百炼 DashScope 北京站 + 千问视觉模型
+   说明：DeepSeek 无多模态能力，故图片批改单独使用千问；千问 key 属于北京站，
+        必须用 dashscope.aliyuncs.com（国际站会返回 invalid_api_key）。 */
+const TEXT_API_URL = "https://api.deepseek.com/v1/chat/completions";
+const TEXT_MODEL   = "deepseek-chat";     // 文字闯关模型
+
+const VISION_API_URL  = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
+const IMAGE_MODEL     = "qwen3-vl-plus";  // 中文手写识别表现最好的视觉模型
+const IMAGE_THINKING  = true;             // 千问思考模式：实测关掉后会把完全正确的解答误判为错误
+const IMAGE_MAX_EDGE  = 1280;             // 上传前压缩：长边上限（像素），再大对识别无益，只会更慢更贵
+const IMAGE_JPEG_QUALITY = 0.8;           // 压缩后的 JPEG 质量
+
+/* --- 密钥保险箱 ---
+   两个 API Key 不存明文，而是用口令派生的 AES-256-GCM 密钥加密后放在下面。
+   页面启动时输入口令 → 在内存里解出密钥 → 关闭页面即消失（不写 localStorage）。
+   换密钥 / 换口令：运行同目录的 make-vault.mjs，用输出的新 VAULT 整段替换即可。 */
+const VAULT = {
+  iterations: 250000,
+  salt: "HEZPPxis6JqYEYGiF7tR8Q==",
+  iv: "g9X4cdt29FjWNeWg",
+  data: "vddYWzKw1e5Gj+H+jVngQWcgaqcLtVsYZOh+dm81OtvZLSf8Anj2UyJdcdCn3UAyO2Tx/woM3k/TC8lmsqafqp32goYLnTdupaLjgGwxzi+Ku45yx63U1gSMfrXNdSDtaZok4IfnQdMzAUE8EsuSv+4oNmtUQDKieyGxbBiDppzBWRYyx2EMIotC+KvZq1orogv5gHxAxF9cP/sJ7j9QbtZ7IWRdDtrsUsO4jXmNX0E1uZZ484wwz0kxuNi1"
+};
+
+let TEXT_API_KEY   = "";   // 解锁前为空，解锁后才有值
+let VISION_API_KEY = "";
+
+/* --- 密钥解密 + 口令弹窗 --- */
+function b64ToBytes(b64) {
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+async function decryptVault(passphrase) {
+  if (!window.crypto || !window.crypto.subtle) {
+    throw new Error("当前浏览器不支持 Web Crypto，请用 Chrome / Edge / Safari 打开");
+  }
+  const enc = new TextEncoder();
+  const baseKey = await crypto.subtle.importKey(
+    "raw", enc.encode(passphrase), "PBKDF2", false, ["deriveKey"]
+  );
+  const key = await crypto.subtle.deriveKey(
+    { name: "PBKDF2", salt: b64ToBytes(VAULT.salt), iterations: VAULT.iterations, hash: "SHA-256" },
+    baseKey, { name: "AES-GCM", length: 256 }, false, ["decrypt"]
+  );
+  // 口令错误时 AES-GCM 会抛认证失败，不会解出错误内容
+  const plain = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: b64ToBytes(VAULT.iv) }, key, b64ToBytes(VAULT.data)
+  );
+  const obj = JSON.parse(new TextDecoder().decode(plain));
+  if (!obj.text || !obj.vision) throw new Error("密钥数据不完整");
+  return obj;
+}
+
+/* 弹出口令框；解密成功返回 true，取消返回 false */
+function requestUnlock() {
+  return new Promise((resolve) => {
+    const gate    = $("vaultGate");
+    const input   = $("vaultPass");
+    const errEl   = $("vaultErr");
+    const btnOk   = $("btnUnlock");
+    const btnCancel = $("btnCancelUnlock");
+
+    gate.classList.add("show");
+    input.value = "";
+    errEl.textContent = "";
+    setTimeout(() => input.focus(), 60);
+
+    function cleanup(ok) {
+      btnOk.removeEventListener("click", onUnlock);
+      btnCancel.removeEventListener("click", onCancel);
+      input.removeEventListener("keydown", onKey);
+      gate.classList.remove("show");
+      resolve(ok);
+    }
+
+    async function onUnlock() {
+      const pass = input.value;
+      if (!pass) { errEl.textContent = "请输入口令"; input.focus(); return; }
+
+      btnOk.disabled = true;
+      btnOk.textContent = "正在解锁…";
+      errEl.textContent = "";
+      try {
+        const keys = await decryptVault(pass);
+        TEXT_API_KEY   = keys.text;
+        VISION_API_KEY = keys.vision;
+        cleanup(true);
+        toast("已解锁，开始闯关");
+      } catch (e) {
+        errEl.textContent = "口令不正确，请重试";
+        input.select();
+      } finally {
+        btnOk.disabled = false;
+        btnOk.textContent = "解锁并开始";
+      }
+    }
+    function onCancel() { cleanup(false); }
+    function onKey(e) { if (e.key === "Enter") { e.preventDefault(); onUnlock(); } }
+
+    btnOk.addEventListener("click", onUnlock);
+    btnCancel.addEventListener("click", onCancel);
+    input.addEventListener("keydown", onKey);
+  });
+}
+
+/* --- 功能开关 --- */
+const ENABLE_IMAGE_MODE = true; // 图片批改模式开关
+
+/* --- 请求超时（毫秒）：超过该时间自动中断并提示，避免一直卡在“导师思考中” --- */
+const REQUEST_TIMEOUT_MS = 90000;
+
+/* --- 内置题库（兜底用：AI 出题失败时自动使用，保证一定能开始） --- */
+const QUESTIONS = {
+  basic:    "某班共有学生45人，男生人数比女生人数多3人，求男、女生各多少人？",                       // 题目1（基础）
+  advanced: "甲乙两人相距30km，甲速度4km/h，乙速度6km/h，两人同时相向而行，多久后相遇？"             // 题目2（进阶）
+};
+
+/* --- 题型定义：键值对应首页“题型”下拉框，供 AI 出题时指定范围 --- */
+const TOPICS = {
+  auto:         "各类初中应用题随机混合（和差倍分、行程、工程、利润、年龄、几何、浓度等）",
+  ratio:        "和差倍分问题",
+  travel:       "行程问题（相遇、追及、往返）",
+  work:         "工程问题（工作效率、合作完成）",
+  profit:       "销售利润问题（进价、售价、利润率、打折）",
+  age:          "年龄问题",
+  geometry:     "几何周长面积问题",
+  concentration:"浓度配比问题"
+};
+
+/* 题型短名：用于教师端“薄弱题型”和同学榜等窄列显示 */
+const TOPIC_SHORT = {
+  auto: "综合应用", ratio: "和差倍分", travel: "行程", work: "工程",
+  profit: "销售利润", age: "年龄", geometry: "几何", concentration: "浓度",
+  shooter: "雷霆战机", detective: "应用题侦探"
+};
+
+/* --- 难度定义：供 AI 出题时指定难度与知识范围 --- */
+const DIFFICULTIES = {
+  basic:    "基础难度：只需列一元一次方程即可解决，数据简单、关系直接，适合刚学方程的学生。",
+  advanced: "进阶难度：需要一定的分析，可能涉及两个等量关系、单位换算或稍复杂的数量关系，但仍可用一元一次方程解决。"
+};
+
+/* --- 出题提示词：让 AI 动态生成一道新的初中应用题 --- */
+const GENERATE_SYSTEM_PROMPT = `你是一位初中数学命题老师，负责为一道应用题闯关练习出一道新题目。
+【要求】
+1. 只输出题目本身，不要输出答案、解析、解题步骤，也不要输出任何多余的话。
+2. 题目必须是初中数学课标范围内、可以用一元一次方程解决的实际应用题。
+3. 题干需表达清晰、数据合理（结果应为整数或较整齐的数），符合生活常识。
+4. 不要与下面提供的"参考题"雷同：如果题型相同，请更换情境、数据或问法，让它成为一道真正不同的题目。
+5. 只输出一行题目文本，不要编号、不要"题目："之类的前缀、不要markdown。`;
+
+/* --- 图片批改专用系统提示词（按需求原文嵌入） --- */
+const TEXT_SYSTEM_PROMPT = `你是一名经验丰富的初中数学老师，现在一对一辅导一名初中生做应用题。
+你不是在"走流程"，而是像一位真实、耐心、善于提问的好老师那样，帮助学生自己想清楚。
+
+【核心铁律，绝对不能违反】
+1. 禁止直接给出答案、完整方程、完整解题步骤、最终计算结果。永远不能替学生完成推理。
+2. 不要简单说"你错了""回答错误"。如果学生思路有偏差，用反问引导他自己发现矛盾。
+3. 你的任务：只提出问题，引导学生自主思考，一次只问一个问题。
+4. 目标用户：初中生，语言简洁、自然、亲切，不要幼稚，也不要过度学术化。
+
+【像真实老师一样引导（重要）】
+应用题的自然思考脉络大致是：读懂题→找出已知与隐含条件→确定要求的未知量→设未知数→找等量关系→列方程→求解→检验是否符合实际。
+但这只是你的内部参考，不是要卡死的关卡。你要根据学生当前说到哪一步，顺势引导，而不是机械逐关推进。
+
+【开场第一步：先要学生的答案】
+学生看到题目后，你的第一个问题应该是先问他要答案/要想法，例如：
+"你打算怎么解这道题？先说说你的答案，或者说说你打算从哪儿入手？"
+即：先让学生给出他的答案（哪怕只是一个结果、一个猜想），再进入下面的对错判断。
+
+【拿到学生回答后，先判断：答对了还是答错了，再分支】
+每次收到学生回答，先在心里判断他这一步（或整道题）是否正确，再选择做法：
+
+情况一：学生答对了（结果正确，思路也说得通）
+- 只需要让他说一次思路就够了：肯定他，并请他讲一次是怎么想出来的（如果他已经讲了，就直接肯定并收尾）。
+- 不要为了多问而多问，不要反复追问细节、也不要再提新问题拖着他。
+- 讲完思路后，简要总结他这次的想法，并在末尾输出 <<COMPLETE>>，让他进入复盘。
+
+情况二：学生答错了（结果错，或思路有漏洞、方向偏了）
+- 先不要直接说"错了"，而是引导他讲出自己的思路："你是怎么想的？把你的推理说给我听听。"
+- 听清他的思路后，点出问题所在：用反问让他自己看到矛盾（例如："你说男生是女生的3倍，可题目说的是'多3人'，这两种说法一样吗？"）。
+- 然后给出正确思路的方向——只给方向和关键切入点，不要写出完整算式、方程或答案。例如：
+  "这道题的关键是：先想清楚哪个量设为 x 更方便，再找'总数'这个等量关系。你再试一次？"
+- 学生调整后重新尝试；只要他答对了就收尾（见下方"随时可以终止引导"）。
+
+情况三：学生卡住、说不清楚，或主动请求提示
+- 给一点弱方向提示（不要涉及完整方程或答案），帮他迈一小步，再让他继续尝试。
+
+【重要：随时可以终止引导】
+不必非要走完所有引导步骤。只要学生在任何一步直接给出了正确答案（或正确的关键思路），
+就立即判定他已经掌握这道题：肯定他、简要总结，并输出 <<COMPLETE>> 收尾，不要继续追问或强行再走后面的步骤。
+
+【收尾的那条消息绝对不能提问】
+输出 <<COMPLETE>> 的那条回复，只能是"肯定 + 总结"，不得再向学生提出任何问题、不得要求他回答或补充。
+如果你还想让学生说话（例如请他复述思路），那这一次就先不要输出 <<COMPLETE>>；
+等他把话说完、你确认无误后的下一轮，再总结收尾。
+
+【特别要求：学生直接说出答案，但没讲过程时】
+如果学生只报了结果（如"答案是男生24人"），但没有说清楚是怎么想出来的，
+先判断这个结果对不对：
+- 如果结果是对的 → 只要求他讲这一次思路："结果是对的！不过我更想知道你是怎么想出来的——能说说你的思路吗？" 他讲完就收尾（输出 <<COMPLETE>>），不要再追问。
+- 如果结果是错的 → 先请他讲思路，再按"情况二"点出问题、给出正确方向。
+不要直接给出正确答案，也不要直接替他算。
+
+【输出格式要求】
+你的回复只包含对话内容，不要输出markdown、不要多余解释。
+不要一次性输出多个问题，一次只提一个问题。
+
+【禁止行为清单】
+❌ 直接写出方程、算式、答案
+❌ 一次性把解题思路全部讲出来
+❌ 使用"正确/错误"这种直白评判词汇
+❌ 超出初中数学课标范围
+额外约束：
+- 如果学生输入和数学无关的闲聊内容，礼貌把话题拉回来："我们先回到这道应用题，继续完成思考吧。"
+- 如果学生直接要求你给出答案，拒绝："我不能直接给你答案，但我们可以一步步一起想清楚。"
+
+【结束判定（机读标记，学生看不到，网页会自动删除）】
+- 情况一（一开始就答对）：学生说出/已经说明一次思路后，就总结并输出 <<COMPLETE>>，不要再多问。
+- 情况二（答错了）：学生按你给的方向改正、答对并说明思路后，肯定他并输出 <<COMPLETE>>。
+- 收尾后就不要再提新问题，不要用"再听你多说一句"这类追问拖着学生。
+- 其余所有情况都不要输出任何标记。`;
+
+/* --- 图片批改专用系统提示词（按需求原文嵌入） --- */
+
+/* --- 图片批改专用系统提示词 --- */
+const IMAGE_SYSTEM_PROMPT = `你是初中数学苏格拉底导师，正在一对一辅导一名初中生，学生会把手写解题过程拍照发给你。
+【铁律，严格遵守】
+1. 禁止直接给出答案、完整方程、完整解题步骤、最终计算结果。
+2. 不要简单说"你错了"。用反问引导他自己发现矛盾。
+3. 一次只问一个问题，不要一次性列出全部错误。
+4. 先读懂图片里学生究竟写了什么，再判断对错；图片模糊看不清就请他重拍，不要凭猜测评价。
+
+【先判断，再分支】
+- 若图片里的解题过程已经完整且正确 → 直接肯定他哪一步想得好，用一两句话总结方法，**不要再提问、也不要再要求他复述思路**，末尾输出 <<COMPLETE>>。
+- 若只有答案、或关键步骤看不清、不足以判断思路 → 这时才请他讲讲是怎么想的；这种情况下**不要输出 <<COMPLETE>>**。
+- 若解答有错或中途卡住 → 先问他是怎么理解题意的、思路从哪来，再针对最关键的**一处**矛盾反问，只给方向，不给答案。
+- 若学生后续回复中已经说明正确思路，或表示"我懂了"并能讲清 → 立即简要总结他的思路要点并收尾，不要再额外加练。
+
+【收尾的那条消息绝对不能提问】
+输出 <<COMPLETE>> 的那条回复，只能是"肯定 + 总结"，不得再向学生提出任何问题、不得要求他回答或补充。
+如果你还想让学生说话，那这一次就先不要输出 <<COMPLETE>>。
+
+【输出要求】只输出对话文本，不要 markdown。当这次辅导可以结束时，在回复最末尾单独一行输出 <<COMPLETE>>。`;
+
+/* --- 思考脉络（仅作为引导参考，不用于卡关卡） --- */
+const THINKING_FLOW = [
+  "读懂题意，找出已知条件与隐含条件",
+  "确定要求的未知量，设定未知数",
+  "寻找等量关系，建立数学模型",
+  "列出方程，求解计算",
+  "检验结果是否符合实际，并复述思路"
+];
+
+/* --- 星星规则：每完成一次高质量思考点亮一颗；整题答对或学生自评“已掌握”直接给满 5 颗 --- */
+const MAX_STARS = 5;
+const MAX_HINTS = 2;   // 提示次数上限（全局）
+
+/* =========================================================================
+   二·补、游戏内容：等级称号 / 徽章 / 关卡名 / 学园箴言
+   （纯前端设定，全部由本页记录推导出来，不依赖服务器）
+   ========================================================================= */
+
+/* 等级称号：等级从 1 开始，满级后一直沿用最后一个称号 */
+const LEVEL_TITLES = [
+  "见习学徒", "好奇的追问者", "思路搭建者", "方程小匠", "逻辑侦探", "苏格拉底学徒",
+  "苏格拉底门徒", "数学智者", "学园导师", "解题传说", "思考的化身", "学园之光"
+];
+
+/* 升到第 n 级所需的累计经验（60 起，越往后越慢） */
+function xpNeedForLevel(n) {
+  const table = [0, 60, 150, 280, 450, 680, 980, 1360, 1820, 2360, 3000, 3750];
+  if (n <= 1) return 0;
+  if (n <= table.length) return table[n - 1];
+  return table[table.length - 1] + (n - table.length) * 1000;
+}
+
+/* 单条记录的经验：基础分 + 难度 / 独立思考 / 轮次 / 满星加成
+   雷霆战机按一局的正确率折算，应用题侦探按破案得分折算，不套用对话轮次规则 */
+function xpForRecord(r) {
+  if (r.mode === "shooter") {
+    const acc = r.answered ? (r.rightCount || 0) / r.answered : 0;
+    return 12 + Math.round(acc * 30);
+  }
+  if (r.mode === "detective") {
+    return 18 + Math.round(((r.score || 0) / 700) * 30);
+  }
+  const rounds = r.rounds || 0;
+  return 20
+    + (r.difficulty === "advanced" ? 10 : 0)
+    + ((r.hints || 0) === 0 ? 8 : 0)
+    + (rounds <= 1 ? 10 : rounds <= 2 ? 5 : 0)
+    + ((r.stars || 0) >= MAX_STARS ? 5 : 0);
+}
+
+function levelInfoFromXp(xp) {
+  let level = 1;
+  while (level < 99 && xp >= xpNeedForLevel(level + 1)) level++;
+  const cur  = xpNeedForLevel(level);
+  const next = xpNeedForLevel(level + 1);
+  return {
+    level, xp, cur, next,
+    title: LEVEL_TITLES[Math.min(level - 1, LEVEL_TITLES.length - 1)],
+    pct: next > cur ? Math.min(100, Math.round(((xp - cur) / (next - cur)) * 100)) : 100
+  };
+}
+
+/* 徽章表：test 接收聚合后的统计对象，返回是否达成 */
+const BADGES = [
+  { id: "first_step",  icon: "🚪", name: "初次叩门",     desc: "完成第 1 道题",                        test: s => s.count >= 1 },
+  { id: "perfect_one", icon: "⚡", name: "一气呵成",     desc: "某道题 1 轮内完成且没用提示",          test: s => s.perfect > 0 },
+  { id: "no_hint_3",   icon: "🧠", name: "独立思考者",   desc: "连续 3 道题都没用提示",                test: s => s.noHintStreak >= 3 },
+  { id: "hint_free_5", icon: "💧", name: "滴水不漏",     desc: "连续 5 道题都没用提示",                test: s => s.noHintStreak >= 5 },
+  { id: "five_q",      icon: "🧱", name: "稳扎稳打",     desc: "累计完成 5 道题",                      test: s => s.count >= 5 },
+  { id: "ten_q",       icon: "🎯", name: "全勤思考家",   desc: "累计完成 10 道题",                     test: s => s.count >= 10 },
+  { id: "four_topics", icon: "📚", name: "博览群题",     desc: "做过 4 种不同题型",                    test: s => s.topics >= 4 },
+  { id: "advanced_3",  icon: "🏔️", name: "进阶勇者",    desc: "完成 3 道进阶题",                      test: s => s.advanced >= 3 },
+  { id: "image_2",     icon: "📷", name: "影像破译者",   desc: "在图片批改模式完成 2 道题",            test: s => s.images >= 2 },
+  { id: "hint_hero",   icon: "🙋", name: "不耻下问",     desc: "用掉 2 次提示后仍把题想通",             test: s => s.maxHints >= 2 },
+  { id: "win_streak_3", icon: "🔥", name: "连胜三题",    desc: "连续 3 道题都在 2 轮内完成",            test: s => s.winStreak >= 3 },
+  { id: "speed_3min",  icon: "🏎️", name: "神速解题",    desc: "30 秒到 3 分钟内完成一道题",           test: s => s.fastest > 0 && s.fastest < 180000 },
+  { id: "socratic_15", icon: "🏛️", name: "苏格拉底之友", desc: "完成 15 道题且平均不超过 3 轮",        test: s => s.drillCount >= 15 && s.avgRounds <= 3 },
+  { id: "shooter_first", icon: "🛸", name: "雷霆初战",   desc: "完成一局雷霆战机",                     test: s => s.shooterGames >= 1 },
+  { id: "shooter_ace",   icon: "🚀", name: "雷霆学霸",   desc: "一局雷霆战机正确率达到 90%",            test: s => s.shooterBestAcc >= 0.9 },
+  { id: "shooter_perfect", icon: "🎯", name: "百发百中", desc: "一局雷霆战机全部答对（至少 8 题）",      test: s => s.shooterPerfect },
+  { id: "detective_first", icon: "🔍", name: "见习侦探", desc: "完成一次应用题侦探案件",                 test: s => s.detectiveGames >= 1 },
+  { id: "detective_master", icon: "🕵️", name: "神探",   desc: "一次答对 5 题并一次指认成功",            test: s => s.detectivePerfect }
+];
+
+/* 关卡地图的短名（与 THINKING_FLOW 一一对应） */
+const STAGE_SHORT = ["读懂题意", "设未知数", "找等量关系", "列方程", "检验复述"];
+
+/* 复盘页随机箴言 */
+const PROVERBS = [
+  "“我唯一知道的，就是我一无所知。” —— 苏格拉底",
+  "“未经省察的人生不值得过。” —— 苏格拉底",
+  "“数统治着宇宙。” —— 毕达哥拉斯",
+  "“数学是上帝书写宇宙的语言。” —— 伽利略",
+  "“提出一个问题往往比解决一个问题更重要。” —— 爱因斯坦",
+  "把每一步说清楚，比直接报出答案更有力量。",
+  "错题不是敌人，是告诉你下一步该往哪走的路标。",
+  "慢一点没关系，想清楚才算数。",
+  "方程是给未知量起的一个名字，起了名字，它就不再可怕。",
+  "会提问的人，已经解决了一半的问题。",
+  "今天多想一步，明天就少卡一次。",
+  "检验不是多余的一步，它是让答案站得住脚的那块地基。"
+];
+
+/* =========================================================================
+   三、全局状态（全部保存在页面内存，刷新即清空，不使用数据库/localStorage）
+   ========================================================================= */
+let currentQuestion    = "";   // 当前题目文本
+let currentStage       = 0;    // 已完成的思考步数（用于进度展示，不再卡 1~5 关）
+let starCount          = 0;    // 星星数量：逐轮累加，答对/自评掌握时直接给满
+let hintUsed           = 0;    // 已用提示次数 0~2（全局，用完置灰）
+let chatHistory        = [];   // 对话记录 [{role:"user"|"assistant", content:"" 或多模态 parts}]
+let selectedDifficulty = "basic"; // 选中难度
+let selectedTopic      = "auto";  // 选中的题型（用于 AI 动态出题）
+let gameMode           = "text";  // "text" 文字闯关 / "image" 图片批改
+let apiUrl             = TEXT_API_URL; // API 接口地址（按模式切换）
+let apiKey             = TEXT_API_KEY; // API Key（按模式切换）
+let model              = TEXT_MODEL;       // 当前使用的模型（按模式自动切换）
+let pendingImageDataUrl = "";  // 当前待提交图片的 dataURL（base64）
+let isBusy             = false; // API 请求中，防止重复提交
+
+/* --- 学习记录：每完成一道题追加一条 --- */
+let currentRoundCount = 0;      // 当前这道题已进行的“学生作答轮次”
+let currentStartTime  = 0;      // 当前这道题开始的时间戳
+let lastRecord        = null;   // 最近一次完成的记录（复盘页展示用）
+let lastReward        = null;   // 最近一次的经验 / 升级 / 新徽章结算
+let lastStarShown     = 0;      // 上一次渲染的星星数（用于点亮动画，避免重复播放）
+
+/* --- 登录与班级数据（纯单机：账号、记录都放在下面的内存容器里） ---
+   不需要任何后端服务，直接双击 HTML 就能用「登录 / 注册 / 教师看板 / 同学榜」全部功能。
+   注意：数据只活在当前页面内存，刷新或关闭页面即清空；不写磁盘，也不用
+        localStorage / sessionStorage / Cookie。 */
+let authToken   = "";           // 登录后生成的令牌（只存内存）
+let currentUser = null;         // {username, name, role:"teacher"|"student"}
+let studentName = "";           // 当前学生账号的姓名（记录和教师端显示用）
+let allRecords  = [];           // 当前读取到内存的学习记录（教师端 / 同学榜使用）
+let openQuestionsStudent = "";  // 教师端当前查看答题记录的学生姓名
+let teacherRefreshTimer = null;
+let soundOn = true;             // 游戏音效开关（默认开，仅本页有效）
+
+/* 内存数据库：这也就是“本地暂存”的全部实现 */
+const localDB = {
+  users:  new Map(),   // 用户名（小写）→ { username, name, password, role }
+  records: [],         // 学习记录数组（字段和原来提交给服务器的记录一致）
+  tokens: new Map(),   // 登录令牌 → 用户名（仅本页有效）
+  seenBadges: new Map() // 用户名 → 已经播报过的徽章 id 集合（避免重复庆祝）
+};
+
+/* 内置账号：教师账号没有注册入口，必须预置；再送两个学生账号方便试多账号 */
+function seedLocalAccounts() {
+  [
+    { username: "teacher",  name: "王老师", password: "123456", role: "teacher" },
+    { username: "xiaoming", name: "小明",   password: "123456", role: "student" },
+    { username: "xiaohong", name: "小红",   password: "123456", role: "student" }
+  ].forEach(u => localDB.users.set(u.username, Object.assign({}, u)));
+}
+
+function localFindUser(username) {
+  return localDB.users.get(String(username || "").trim().toLowerCase()) || null;
+}
+
+/* 登录成功后发一个令牌，并按角色返回身份信息 */
+function localIssueSession(user) {
+  const token = "local-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
+  localDB.tokens.set(token, user.username);
+  return { token, username: user.username, name: user.name, role: user.role };
+}
+
+/* 统一的接口请求：函数签名和原来完全一致，内部改成读写内存数据库 */
+async function apiRequest(path, options = {}) {
+  const method = (options.method || "GET").toUpperCase();
+  let body = {};
+  if (options.body) {
+    try { body = JSON.parse(options.body); } catch (e) { body = {}; }
+  }
+  // 令牌和原接口一样，由 apiRequest 内部按当前登录态带上
+  const tokenUser = authToken ? localDB.tokens.get(authToken) : null;
+  const me = tokenUser ? localFindUser(tokenUser) : null;
+
+  await new Promise(r => setTimeout(r, 160));   // 略微延迟，让“登录中…”有真实感
+
+  if (path === "/api/health") return { ok: true };
+
+  if (path === "/api/login" && method === "POST") {
+    const user = localFindUser(body.username);
+    if (!user || user.password !== body.password) throw new Error("账号或密码不正确");
+    return localIssueSession(user);
+  }
+
+  if (path === "/api/register" && method === "POST") {
+    const username = String(body.username || "").trim().toLowerCase();
+    const name     = String(body.name || "").trim();
+    if (!/^[a-z0-9_]{3,20}$/.test(username)) throw new Error("用户名需为 3-20 位字母、数字或下划线");
+    if (!name) throw new Error("请填写学生姓名");
+    if (String(body.password || "").length < 6) throw new Error("密码至少 6 位");
+    if (localDB.users.has(username)) throw new Error("该用户名已被注册，换一个试试");
+    const user = { username, name, password: body.password, role: "student" };
+    localDB.users.set(username, user);
+    return localIssueSession(user);
+  }
+
+  // 以下接口都需要登录
+  if (!me) throw new Error("登录状态已失效，请重新登录");
+
+  // 读取全部学习记录：教师端看全班，学生端看同学榜
+  if (path === "/api/records" && method === "GET") {
+    return { records: localDB.records.slice() };
+  }
+
+  // 教师清空全部记录
+  if (path === "/api/records" && method === "DELETE") {
+    if (me.role !== "teacher") throw new Error("只有教师账号可以清空记录");
+    localDB.records.length = 0;
+    return { ok: true };
+  }
+
+  throw new Error("未知接口：" + path);
+}
+
+/* 拉取全部学习记录（单机版直接读内存数组） */
+async function fetchClassRecords() {
+  const data = await apiRequest("/api/records");
+  return Array.isArray(data.records) ? data.records : [];
+}
+
+/* =========================================================================
+   三·补、学园档案：等级 / 经验 / 徽章 / 音效 / 庆祝
+   —— 全部由 localDB.records 实时推导，不额外存一份状态
+   ========================================================================= */
+
+/* 学生完成一题：同步写入内存数据库，返回带归属信息的记录 */
+function saveRecordToLocalDB(record) {
+  if (!currentUser || currentUser.role !== "student") return null;
+  const saved = Object.assign({}, record, {
+    username: currentUser.username,
+    student:  studentName || currentUser.name || currentUser.username
+  });
+  localDB.records.push(saved);
+  return saved;
+}
+
+/* 把一组记录聚合成“学园档案”：完成数 / 星星 / 连击 / 最快 / 经验 / 等级……
+   雷霆战机、应用题侦探是练习局，不计入对话轮次、题型、最快用时等“单题”指标 */
+function statsFromRecords(records) {
+  const list = records.slice().sort((a, b) => (a.ts || 0) - (b.ts || 0));
+  const count = list.length;
+  const stars = list.reduce((a, r) => a + (r.stars || 0), 0);
+  const isPractice = r => r.mode === "shooter" || r.mode === "detective";
+  const drill = list.filter(r => !isPractice(r));   // 只含文字 / 图片闯关记录
+  const roundsTotal = drill.reduce((a, r) => a + (r.rounds || 0), 0);
+  const perfect = drill.filter(r => (r.rounds || 0) <= 1 && (r.hints || 0) === 0).length;
+  const topics = new Set(drill.map(r => r.topicKey || "auto")).size;
+  const advanced = drill.filter(r => r.difficulty === "advanced").length;
+  const images = list.filter(r => r.mode === "image").length;
+  const maxHints = list.reduce((a, r) => Math.max(a, r.hints || 0), 0);
+  // 只把“真正花时间想过”的记录算进最快用时（至少 30 秒，排除点一下就自评掌握的情况）
+  const durations = drill.map(r => r.durationMs || 0).filter(ms => ms >= 30000);
+  const fastest = durations.length ? Math.min.apply(null, durations) : 0;
+
+  // 连续无提示：从最近一条往前数，遇到用过提示的就停（只看闯关记录）
+  let noHintStreak = 0;
+  for (let i = drill.length - 1; i >= 0; i--) {
+    if ((drill[i].hints || 0) === 0) noHintStreak++; else break;
+  }
+  // 连续高效：最近几条都在 2 轮内完成
+  let winStreak = 0;
+  for (let i = drill.length - 1; i >= 0; i--) {
+    if ((drill[i].rounds || 0) <= 2) winStreak++; else break;
+  }
+
+  // 雷霆战机战绩
+  const shooterRecs = list.filter(r => r.mode === "shooter");
+  const shooterGames = shooterRecs.length;
+  const shooterBestAcc = shooterRecs.reduce((a, r) => Math.max(a, r.accuracy || 0), 0);
+  const shooterPerfect = shooterRecs.some(r => (r.accuracy || 0) >= 1 && (r.answered || 0) >= 8);
+
+  // 应用题侦探战绩
+  const detectiveRecs = list.filter(r => r.mode === "detective");
+  const detectiveGames = detectiveRecs.length;
+  const detectivePerfect = detectiveRecs.some(r => !!r.perfect);
+
+  const xp = list.reduce((a, r) => a + xpForRecord(r), 0);
+  const levelInfo = levelInfoFromXp(xp);
+  return {
+    count, stars, perfect, topics, advanced, images, maxHints, fastest,
+    drillCount: drill.length,
+    noHintStreak, winStreak, avgRounds: drill.length ? roundsTotal / drill.length : 0,
+    shooterGames, shooterBestAcc, shooterPerfect,
+    detectiveGames, detectivePerfect,
+    xp, level: levelInfo.level, title: levelInfo.title, levelInfo
+  };
+}
+
+function recordsForUser(username) {
+  return localDB.records.filter(r => (r.username || "") === username);
+}
+
+/* 当前登录学生的档案数据 */
+function myStats() {
+  return statsFromRecords(currentUser ? recordsForUser(currentUser.username) : []);
+}
+
+/* 已获得的徽章 id */
+function earnedBadgeIds(stats) {
+  return BADGES.filter(b => {
+    try { return !!b.test(stats); } catch (e) { return false; }
+  }).map(b => b.id);
+}
+
+/* 对比“已播报”集合，返回本次新解锁的徽章 id（同时记入集合） */
+function collectNewBadges(username, stats) {
+  if (!localDB.seenBadges.has(username)) localDB.seenBadges.set(username, new Set());
+  const seen = localDB.seenBadges.get(username);
+  const earned = earnedBadgeIds(stats);
+  const fresh = earned.filter(id => !seen.has(id));
+  earned.forEach(id => seen.add(id));
+  return fresh;
+}
+
+/* --- 音效：用 Web Audio 现场合成，不加载任何音频文件 --- */
+let audioCtx = null;
+function ensureAudio() {
+  try {
+    if (!audioCtx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      audioCtx = new AC();
+    }
+    if (audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
+    return audioCtx;
+  } catch (e) { return null; }
+}
+
+function playTone(freq, delay, duration, type, volume) {
+  if (!soundOn) return;
+  const ctx = ensureAudio();
+  if (!ctx) return;
+  try {
+    const t0 = ctx.currentTime + (delay || 0);
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type || "sine";
+    osc.frequency.setValueAtTime(freq, t0);
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(volume || 0.08, t0 + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t0 + duration + 0.03);
+  } catch (e) { /* 音效失败不影响游戏 */ }
+}
+
+function playStarSound()     { playTone(880, 0, 0.12, "sine", 0.06); }
+function playCompleteSound() { [523, 659, 784, 1047].forEach((f, i) => playTone(f, i * 0.09, 0.18, "sine", 0.08)); }
+function playBadgeSound()    { [784, 1047, 1319].forEach((f, i) => playTone(f, i * 0.11, 0.2, "triangle", 0.08)); }
+function playLevelUpSound()  { [523, 659, 784, 1047, 1319].forEach((f, i) => playTone(f, i * 0.1, 0.24, "triangle", 0.075)); }
+
+function updateSoundButton() {
+  const btn = $("btnSound");
+  if (btn) btn.textContent = soundOn ? "🔊 音效开" : "🔇 音效关";
+}
+
+/* 彩带庆祝：解锁徽章时撒一把 */
+function celebrate() {
+  const layer = $("celebrateLayer");
+  if (!layer) return;
+  const colors = ["#2563eb", "#f59e0b", "#10b981", "#ef4444", "#8b5cf6", "#ec4899"];
+  for (let i = 0; i < 26; i++) {
+    const el = document.createElement("span");
+    el.className = "confetti";
+    el.style.left = (Math.random() * 100).toFixed(1) + "vw";
+    el.style.width = (6 + Math.random() * 6).toFixed(0) + "px";
+    el.style.height = (10 + Math.random() * 10).toFixed(0) + "px";
+    el.style.background = colors[i % colors.length];
+    el.style.animationDelay = (Math.random() * 0.5).toFixed(2) + "s";
+    layer.appendChild(el);
+    setTimeout(() => el.remove(), 2800);
+  }
+}
+
+/* 成就墙渲染 */
+function renderBadgeGrid(earnedIds) {
+  const grid = $("badgeGrid");
+  if (!grid) return;
+  const earned = new Set(earnedIds || []);
+  grid.innerHTML = BADGES.map(b => {
+    const ok = earned.has(b.id);
+    return '<div class="badge-card ' + (ok ? "earned" : "locked") + '">' +
+      '<span class="b-icon">' + (ok ? b.icon : "🔒") + "</span>" +
+      '<div><div class="b-name">' + b.name + (ok ? "" : "（未解锁）") + "</div>" +
+      '<div class="b-desc">' + b.desc + "</div></div>" +
+      "</div>";
+  }).join("");
+  const p = $("badgeProgress");
+  if (p) p.textContent = "已获得 " + earned.size + " / " + BADGES.length + " 枚徽章";
+}
+
+/* 刷新首页的学园档案卡（只有学生需要） */
+function refreshHomeProfile() {
+  const card = $("profileCard");
+  if (!currentUser || currentUser.role !== "student") {
+    if (card) card.style.display = "none";
+    return;
+  }
+  if (card) card.style.display = "";
+
+  const stats = myStats();
+  const info = stats.levelInfo;
+  $("profileLevel").textContent = info.level;
+  $("profileTitle").textContent = info.title;
+  $("profileSub").textContent = stats.count
+    ? "已累计 " + stats.xp + " 点经验，继续闯关解锁下一个称号。"
+    : "完成题目获得经验值，升级解锁新称号。";
+  $("xpFill").style.width = info.pct + "%";
+  $("xpText").textContent = stats.xp + " / " + info.next + " XP";
+  $("statDone").textContent = stats.count;
+  $("statStars").textContent = stats.stars;
+  $("statStreak").textContent = stats.noHintStreak;
+  $("statBadges").textContent = earnedBadgeIds(stats).length;
+
+  renderBadgeGrid(earnedBadgeIds(stats));
+  updateDetectiveEntry();
+  updateUserBar();
+}
+
+/* 右上角用户信息 */
+function updateUserBar() {
+  const bar = $("userBar");
+  if (!bar) return;
+  if (!currentUser) { bar.style.display = "none"; return; }
+  bar.style.display = "flex";
+  const isTeacher = currentUser.role === "teacher";
+  const roleText = isTeacher ? "教师" : "学生";
+  const nameText = isTeacher ? currentUser.username : (studentName || "未填姓名");
+  let titleHtml = "";
+  if (!isTeacher) {
+    const info = myStats().levelInfo;
+    titleHtml = ' · <span class="lvl-tag">Lv.' + info.level + " " + escapeHtml(info.title) + "</span>";
+  }
+  $("userChip").innerHTML = '<span class="role">' + roleText + "</span> · " +
+    escapeHtml(nameText) + titleHtml;
+}
+
+/* 登录 / 注册面板切换 */
+function showLoginPane(showRegister) {
+  $("loginPane").style.display = showRegister ? "none" : "";
+  $("registerPane").style.display = showRegister ? "" : "none";
+  $("loginErr").textContent = "";
+  $("regErr").textContent = "";
+  setTimeout(() => (showRegister ? $("regUser") : $("loginUser")).focus(), 80);
+}
+
+/* 登录或注册成功后：保存身份并按角色进入对应界面 */
+async function enterAfterLogin(data) {
+  authToken = data.token;
+  currentUser = { username: data.username, name: data.name || "", role: data.role };
+  studentName = data.role === "student" ? (data.name || data.username) : "";
+  $("loginPass").value = "";
+  $("regPass").value = "";
+  $("regPass2").value = "";
+  updateUserBar();
+
+  if (data.role === "teacher") {
+    await refreshTeacherData();
+    showView("view-teacher");
+    startTeacherAutoRefresh();
+  } else {
+    showView("view-home");
+    refreshHomeProfile();
+    if (!audioCtx) ensureAudio();   // 登录动作本身就是一次用户手势，顺便激活音频
+  }
+}
+
+/* 登录：在内存账号表里校验 → 按角色进入不同界面 */
+async function doLogin() {
+  const username = $("loginUser").value.trim();
+  const password = $("loginPass").value;
+  const err = $("loginErr");
+  const btn = $("btnLogin");
+
+  if (!username || !password) {
+    err.textContent = "请输入账号和密码";
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "登录中…";
+  err.textContent = "";
+
+  try {
+    const data = await apiRequest("/api/login", {
+      method: "POST",
+      body: JSON.stringify({ username, password })
+    });
+    await enterAfterLogin(data);
+  } catch (e) {
+    err.textContent = e.message || "登录失败";
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "登录";
+  }
+}
+
+/* 学生注册：用户名 + 学生姓名 + 密码，成功后自动登录 */
+async function doRegister() {
+  const username = $("regUser").value.trim().toLowerCase();
+  const name = $("regName").value.trim();
+  const password = $("regPass").value;
+  const password2 = $("regPass2").value;
+  const err = $("regErr");
+  const btn = $("btnRegister");
+
+  if (!/^[a-z0-9_]{3,20}$/.test(username)) {
+    err.textContent = "用户名需为 3-20 位字母、数字或下划线";
+    $("regUser").focus();
+    return;
+  }
+  if (!name) {
+    err.textContent = "请填写学生姓名";
+    $("regName").focus();
+    return;
+  }
+  if ([...name].length > 16) {
+    err.textContent = "学生姓名最多 16 个字";
+    $("regName").focus();
+    return;
+  }
+  if (password.length < 6) {
+    err.textContent = "密码至少 6 位";
+    $("regPass").focus();
+    return;
+  }
+  if (password !== password2) {
+    err.textContent = "两次输入的密码不一致";
+    $("regPass2").focus();
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "注册中…";
+  err.textContent = "";
+
+  try {
+    const data = await apiRequest("/api/register", {
+      method: "POST",
+      body: JSON.stringify({ username, name, password })
+    });
+    await enterAfterLogin(data);
+    toast("注册成功，欢迎你，" + (data.name || data.username));
+  } catch (e) {
+    err.textContent = e.message || "注册失败";
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "注册并登录";
+  }
+}
+
+/* 退出登录：只清空当前身份与闯关现场，内存数据库（账号 / 记录）保留，
+   这样在同一个页面里就能换教师账号查看刚产生的成绩。 */
+function doLogout() {
+  if (!confirm("确定退出登录吗？账号和学习记录仍留在本页内存里，可以直接换账号登录。")) return;
+
+  authToken   = "";
+  currentUser = null;
+  studentName = "";
+  allRecords  = [];
+  lastRecord  = null;
+  lastReward  = null;
+  if (teacherRefreshTimer) { clearInterval(teacherRefreshTimer); teacherRefreshTimer = null; }
+  closeStudentQuestions();
+  closeBadgeModal();
+
+  // 清空闯关现场，避免下一个账号看到上一个账号的题目与对话
+  currentQuestion = "";
+  currentStage = 0;
+  starCount = 0;
+  hintUsed = 0;
+  studentAnsweredCount = 0;
+  currentRoundCount = 0;
+  currentStartTime = 0;
+  chatHistory = [];
+  $("chatArea").innerHTML = "";
+  $("inpAnswer").value = "";
+  $("inpImageAnswer").value = "";
+  $("chkMastered").checked = false;
+  $("chkMasteredImg").checked = false;
+  clearPendingImage();
+  $("questionText").textContent = "（暂无题目）";
+  updateProgressUI();
+
+  // 战机与侦探的局内状态也清掉，避免下一个账号继承
+  stopShooterGame();
+  resetDetective();
+
+  // 回到登录页
+  $("loginUser").value = "";
+  $("loginPass").value = "";
+  showLoginPane(false);
+  updateUserBar();
+  showView("view-login");
+  toast("已退出登录，可以换个账号登录");
+}
+
+/* 展示哪份记录：单机版统一用内存里的记录 */
+function getDisplayRecords() {
+  return allRecords;
+}
+
+/* =========================================================================
+   四、通用工具：DOM 快捷方式 / 视图切换 / toast 提示
+   ========================================================================= */
+const $ = (id) => document.getElementById(id);
+
+/* 切换单页视图：只有传入 id 的 section 显示 */
+function showView(id) {
+  // 教师端只允许教师账号进入（学生即使改前端调用也会被挡回）
+  if (id === "view-teacher" && (!currentUser || currentUser.role !== "teacher")) return;
+  // 离开雷霆战机页面时停止游戏循环
+  if (id !== "view-shooter") stopShooterGame();
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  $(id).classList.add("active");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/* 轻提示：输入校验与错误提示共用 */
+let toastTimer = null;
+function toast(msg) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+/* =========================================================================
+   五、UI 渲染：气泡 / 进度面板
+   ========================================================================= */
+
+/* 往对话区追加一条消息。content 可以是字符串，也可以是多模态 parts 数组 */
+function addBubble(role, content) {
+  const area = $("chatArea");
+  const div = document.createElement("div");
+  div.className = "bubble " + (role === "assistant" ? "ai" : role === "user" ? "me" : "sys");
+
+  let html = "";
+  if (role === "assistant") html += '<span class="who">数学导师</span>';
+  if (role === "user")      html += '<span class="who">我</span>';
+
+  if (typeof content === "string") {
+    html += escapeHtml(content);
+  } else if (Array.isArray(content)) {
+    // 多模态消息：文本部分正常显示，图片部分显示缩略图
+    content.forEach(part => {
+      if (part.type === "text") html += escapeHtml(part.text || "");
+      if (part.type === "image_url") {
+        html += '<img src="' + part.image_url.url + '" alt="手写解题照片" />';
+      }
+    });
+  }
+  div.innerHTML = html;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight; // 自动滚动到底部
+}
+
+/* 显示/移除“导师思考中...”加载气泡 */
+let loadingEl = null;
+function showLoading() {
+  hideLoading();
+  loadingEl = document.createElement("div");
+  loadingEl.className = "bubble ai loading-dots";
+  loadingEl.innerHTML = '<span class="who">数学导师</span>导师思考中';
+  $("chatArea").appendChild(loadingEl);
+  $("chatArea").scrollTop = $("chatArea").scrollHeight;
+}
+function hideLoading() {
+  if (loadingEl && loadingEl.parentNode) loadingEl.parentNode.removeChild(loadingEl);
+  loadingEl = null;
+}
+
+/* 简单 HTML 转义，防止模型输出被当作标签解析 */
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+/* 更新进度面板：思考步数 / 星星 / 提示次数 / 五步关卡地图 */
+function updateProgressUI() {
+  // 思考进度：以“已完成步数 / 参考脉络总步数”呈现，不构成卡点
+  const done = Math.min(currentStage, THINKING_FLOW.length);
+  $("stageInfo").textContent = "思考进度：" + done + " / " + THINKING_FLOW.length +
+    (done < THINKING_FLOW.length ? "（下一步：逐步完善思路）" : "（思路已完整）");
+
+  // 星星：新点亮时弹一下，并配一声轻响
+  let stars = "";
+  for (let i = 0; i < MAX_STARS; i++) stars += i < starCount ? "★" : '<span class="off">☆</span>';
+  const starEl = $("starInfo");
+  starEl.innerHTML = stars;
+  if (starCount > lastStarShown) {
+    playStarSound();
+    starEl.classList.remove("pop");
+    void starEl.offsetWidth;          // 强制重排，让动画可以重复触发
+    starEl.classList.add("pop");
+    setTimeout(() => starEl.classList.remove("pop"), 500);
+  }
+  lastStarShown = starCount;
+
+  // 关卡地图：走过的步骤点亮，当前步骤高亮
+  document.querySelectorAll("#stageMap .stage-node").forEach(node => {
+    const i = Number(node.dataset.i);
+    node.classList.toggle("done", currentStage > i);
+    node.classList.toggle("current", currentStage === i && currentStage < THINKING_FLOW.length);
+  });
+
+  // 图片模式没有提示按钮，提示信息另作说明
+  if (gameMode === "image") {
+    $("hintInfo").innerHTML = "图片批改模式：提示由 AI 自主把握";
+    return;
+  }
+
+  $("hintInfo").innerHTML = "已用提示：<b>" + hintUsed + "</b> / " + MAX_HINTS;
+  // 提示用满上限 → 按钮置灰
+  const hintBtn = $("btnHint");
+  hintBtn.disabled = hintUsed >= MAX_HINTS || isBusy;
+  hintBtn.textContent = hintUsed >= MAX_HINTS ? "提示已用完" : "请求提示（剩 " + (MAX_HINTS - hintUsed) + " 次）";
+}
+
+/* 渲染五步关卡地图（初始化一次，之后由 updateProgressUI 更新状态） */
+function renderStageMap() {
+  const box = $("stageMap");
+  if (!box) return;
+  box.innerHTML = THINKING_FLOW.map((s, i) =>
+    '<div class="stage-node" data-i="' + i + '">' +
+      '<span class="dot">' + (i + 1) + "</span>" +
+      '<span class="cap">' + STAGE_SHORT[i] + "</span>" +
+    "</div>"
+  ).join("");
+}
+
+/* 防重复点击：请求期间禁用所有提交类按钮 */
+function setBusy(busy) {
+  isBusy = busy;
+  $("btnSubmitText").disabled    = busy;
+  $("btnSubmitImage").disabled   = busy;
+  $("btnResetText").disabled     = busy;
+  $("btnResetImage").disabled    = busy;
+  $("btnChangeQuestion").disabled = busy;
+  updateProgressUI(); // 内部会同步处理提示按钮状态
+}
+
+/* =========================================================================
+   六、报文组装（核心 API 请求规则）
+   ========================================================================= */
+
+/* 把 chatHistory 格式化为可读文本，塞进报文的【历史对话记录】字段 */
+function formatHistory() {
+  if (chatHistory.length === 0) return "（这是本次的第一条对话）";
+  return chatHistory.map(entry => {
+    const who = entry.role === "user" ? "学生" : "导师";
+    if (typeof entry.content === "string") return who + "：" + entry.content;
+    // 多模态消息：文本取出来，图片用占位说明
+    const parts = entry.content.map(p => {
+      if (p.type === "text") return p.text;
+      if (p.type === "image_url") return "［学生上传了一张手写解题步骤照片］";
+      return "";
+    }).join(" ");
+    return who + "：" + parts;
+  }).join("\n");
+}
+
+/* 模式 A 报文：题目 / 思考脉络 / 历史 / 学生本次输入 / 已用提示次数 */
+function buildTextReport(studentInput) {
+  const isFirstAnswer = chatHistory.filter(h => h.role === "user").length <= 1;
+  return [
+    "【题目文本】：" + currentQuestion,
+    "【学生的思考脉络（仅作引导参考，不必逐条推进）】：",
+    THINKING_FLOW.map((s, i) => (i + 1) + ". " + s).join("\n"),
+    "【历史对话记录】：",
+    formatHistory(),
+    "【学生本次输入】：" + studentInput,
+    "【本次是否是学生的第一次作答】：" + (isFirstAnswer ? "是（如果答对，只需让他讲一次思路就可以收尾）" : "不是"),
+    "【已使用提示次数】：" + hintUsed + "（最多 " + MAX_HINTS + " 次）",
+    "",
+    "请先判断学生答对还是答错：答对了只需让他说一次思路就总结收尾；答错了先引导他讲思路，再指出问题所在并给出正确思路的方向（不要写出完整算式或答案）。",
+    "当这次辅导可以结束时，请在回复的最末尾单独一行输出 <<COMPLETE>>。"
+  ].join("\n");
+}
+
+/* 模式 B 报文：题目 / 历史 + 图片（图片以多模态消息单独附加）
+   hasImage=false 时表示学生只打字回答，没有新照片 */
+function buildImageReport(hasImage, typed) {
+  const lines = [
+    "【题目文本】：" + currentQuestion,
+    "【历史对话记录】：",
+    formatHistory()
+  ];
+  if (hasImage) {
+    lines.push("【学生上传图片】：手写解题步骤照片（见本条消息附带的图片）");
+    if (typed) lines.push("【学生本次补充的文字】：" + typed);
+    lines.push("");
+    lines.push("请先识别图片中的手写解题过程，再按照系统提示词的规则用苏格拉底式提问回应学生。");
+  } else {
+    lines.push("【学生本次输入】：" + typed);
+    lines.push("");
+    lines.push("学生这次没有上传新图片，请根据上面的对话继续用苏格拉底式提问引导他。");
+  }
+  return lines.join("\n");
+}
+
+/* =========================================================================
+   七、API 调用：OpenAI 兼容格式（支持图片 base64 多模态输入）
+   ========================================================================= */
+async function callLLM(messages, extraBody, override) {
+  // override 用于临时指定接口/密钥/模型（例如出题始终走 DeepSeek，不受当前模式影响）
+  const url = (override && override.url)   || apiUrl;
+  const key = (override && override.key)   || apiKey;
+  const mdl = (override && override.model) || model || TEXT_MODEL;
+
+  if (!url) throw new Error("接口地址未配置，请检查代码顶部常量区");
+  if (!key) throw new Error("API Key 未配置，请检查代码顶部常量区");
+
+  // 超时控制：超时则中断请求，避免页面一直卡在加载状态
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  let res;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + key
+      },
+      // extraBody 用于附加厂商私有参数（如千问的 enable_thinking / max_pixels）
+      body: JSON.stringify(Object.assign({ model: mdl, messages: messages }, extraBody || {})),
+      signal: controller.signal
+    });
+  } catch (e) {
+    // 网络层错误：断网、地址写错，或该接口不允许浏览器跨域（CORS）
+    if (e && e.name === "AbortError") {
+      throw new Error("请求超时（超过 " + Math.round(REQUEST_TIMEOUT_MS / 1000) + " 秒未返回），可能是模型繁忙，请稍后重试");
+    }
+    throw new Error(
+      "网络请求失败：可能是接口地址写错、断网，或该 API 不允许浏览器跨域访问(CORS)。" +
+      "请确认接口地址与密钥，并用本地服务器打开本页。"
+    );
+  } finally {
+    clearTimeout(timer);
+  }
+
+  // HTTP 层失败：读取后端返回的错误信息
+  if (!res.ok) {
+    let detail = "";
+    try { detail = await res.text(); } catch (e) {}
+    throw new Error("API 返回失败（" + res.status + "）：" + detail.slice(0, 200));
+  }
+
+  let data;
+  try { data = await res.json(); }
+  catch (e) { throw new Error("API 返回内容不是合法 JSON"); }
+
+  const content = data && data.choices && data.choices[0] && data.choices[0].message
+    ? data.choices[0].message.content : null;
+  if (!content) throw new Error("API 未返回有效的回复内容");
+  return typeof content === "string" ? content : JSON.stringify(content);
+}
+
+/* =========================================================================
+   七·补、动态出题：由 AI 按所选题型与难度生成一道新题目
+   —— 失败时自动退回内置题库（QUESTIONS），保证一定能开始
+   ========================================================================= */
+async function generateQuestion(difficulty, topicKey) {
+  const topicText = TOPICS[topicKey] || TOPICS.auto;
+  const diffText  = DIFFICULTIES[difficulty] || DIFFICULTIES.basic;
+
+  const userReport = [
+    "请按以下要求出一道全新的初中数学应用题：",
+    "【题型】：" + topicText,
+    "【难度】：" + diffText,
+    "【要求】：只输出题目文本本身（一行），不要答案、不要解析、不要编号。",
+    "【参考题（仅供了解风格，请另出完全不同的新题，不要雷同）】：" + (currentQuestion || QUESTIONS[difficulty])
+  ].join("\n");
+
+  // 出题一律走 DeepSeek 文字接口：更快更省，且不受当前是文字/图片模式影响
+  const raw = await callLLM([
+    { role: "system", content: GENERATE_SYSTEM_PROMPT },
+    { role: "user",   content: userReport }
+  ], null, { url: TEXT_API_URL, key: TEXT_API_KEY, model: TEXT_MODEL });
+
+  // 清洗模型输出：去掉可能的前缀、引号、换行与 markdown 标记
+  let q = String(raw).trim()
+    .replace(/^```[\s\S]*?\n/, "").replace(/```$/, "")
+    .replace(/^(题目|问题|应用题)\s*[:：]\s*/, "")
+    .replace(/^["“”']+|["“”']+$/g, "")
+    .split("\n")[0]
+    .trim();
+
+  // 长度合理性校验：太短的当作出题失败，退回内置题
+  if (q.length < 8) throw new Error("生成的题目过短，已改用内置题目");
+  return q;
+}
+
+/* =========================================================================
+   八、完成判定
+   模型认为学生已完整想通并说明思路时，在回复末尾输出 <<COMPLETE>>，
+   前端解析后删除标记并进入复盘页。
+   ========================================================================= */
+let studentAnsweredCount = 0; // 学生认真回答的轮次（用于收尾兜底）
+
+/* 判断学生这次输入是否“值得计一轮思考”（排除纯闲聊/无意义输入） */
+function looksLikeMathThinking(text) {
+  if (!text) return false;
+  const t = String(text).trim();
+  if (t.length < 2) return false;
+  // 纯闲聊关键词，且不含数学内容 → 不计入
+  const chatOnly = /^(你好|在吗|嗨|哈哈|呵呵|谢谢|老师好|你是谁)/.test(t) && !/\d/.test(t);
+  return !chatOnly;
+}
+
+/* 判断导师这句话是不是还在等学生回答。
+   只看最后两行（结尾处），并且必须出现问号才算——避免把"你已经掌握了"误判成提问。 */
+function stillWaitingForStudent(text) {
+  const lines = String(text || "").split("\n").map(s => s.trim()).filter(Boolean);
+  if (!lines.length) return false;
+  const tail = lines.slice(-2).join(" ");
+  if (!/[？?]/.test(tail)) return false;
+  // 客套式的"还有问题吗？"不算必须作答，其余带问号的问句都算
+  if (/还有(什么|其他|别的)?(问题|疑问|不懂)[^？?]*[？?]\s*$/.test(tail)) return false;
+  return true;
+}
+
+function parseAdvance(reply) {
+  let text = reply;
+  let complete = false;
+  let forced = false;   // 是否为兜底强制收尾（这种不再受"仍在提问"约束）
+
+  if (/<<COMPLETE>>/.test(text)) { complete = true; text = text.replace(/<<COMPLETE>>/g, ""); }
+
+  // 兜底1：模型没打标记但语义上明确表示整题完成
+  if (!complete && /(这道题(已经)?(全部)?想通了|思路完整了|闯关完成|全部通关|完成整道题|本次思考复盘|完整地想清楚了)/.test(text)) {
+    complete = true;
+  }
+  // 兜底2：学生已完成多轮实质思考、思考进度也满了，但模型还在追问细微末节 →
+  //        视为本次辅导该收尾了，避免“永远毕不了业”。
+  if (!complete && studentAnsweredCount >= 6 && currentStage >= THINKING_FLOW.length) {
+    complete = true;
+    forced = true;
+  }
+
+  // 一致性保护：模型一边标记"本题完成"，一边又问学生"说说你的思路"，
+  // 会出现"本题已结束、却还要你输入"的矛盾。以提问为准——先让学生把话说完，下一轮再收尾。
+  if (complete && !forced && stillWaitingForStudent(text)) {
+    complete = false;
+  }
+
+  return { text: text.trim(), complete };
+}
+
+/* =========================================================================
+   九、模式 A：文字闯关 —— 提交回答 / 请求提示 / 重置
+   ========================================================================= */
+
+/* 提交文字回答（也用于“请求提示”，传入特殊输入） */
+async function submitTextAnswer(isHintRequest) {
+  if (isBusy) return;
+
+  // 1) 输入校验：空白内容直接提示，不调用 API
+  const raw = $("inpAnswer").value.trim();
+  if (!isHintRequest && !raw) {
+    toast("请输入你的回答后再提交");
+    $("inpAnswer").focus();
+    return;
+  }
+  if (isHintRequest && hintUsed >= MAX_HINTS) {
+    toast("提示已经用完了，试着自己再读一遍题干，说出你的想法？");
+    return;
+  }
+
+  const studentInput = isHintRequest ? "我需要提示" : raw;
+
+  // 2) 组装报文并发送（系统提示词 + 报文 = 两条消息）
+  const report = buildTextReport(studentInput);
+  setBusy(true);
+  showLoading();
+  $("inpAnswer").value = "";
+
+  try {
+    const reply = await callLLM([
+      { role: "system", content: TEXT_SYSTEM_PROMPT },
+      { role: "user",   content: report }
+    ]);
+    hideLoading();
+
+    // 3) 成功后写入历史（先学生、后导师），渲染气泡
+    chatHistory.push({ role: "user", content: studentInput });
+    chatHistory.push({ role: "assistant", content: reply });
+
+    const parsed = parseAdvance(reply);
+    addBubble("user", studentInput);
+    addBubble("assistant", parsed.text);
+
+    // 4) 请求提示 → 提示次数 +1（全局上限 MAX_HINTS）
+    if (isHintRequest) {
+      hintUsed = Math.min(MAX_HINTS, hintUsed + 1);
+    } else {
+      // 学生每完成一次有效思考（非空白、非纯闲聊的认真回答），思考进度与星星各 +1
+      currentStage = Math.min(THINKING_FLOW.length, currentStage + 1);
+      starCount    = Math.min(MAX_STARS, starCount + 1);
+      currentRoundCount += 1;  // 记录这道题学生的作答轮次（供教师端统计）
+      if (looksLikeMathThinking(studentInput)) studentAnsweredCount += 1; // 计一次实质思考
+    }
+
+    // 整题答对（模型判定完成）→ 直接给满 5 颗星
+    if (parsed.complete) starCount = MAX_STARS;
+
+    updateProgressUI();
+
+    // 5) 模型判定学生已完整想通并说明思路 → 记录成绩并进入复盘页
+    if (parsed.complete) {
+      recordQuestionResult();
+      setTimeout(showReview, 600);   // 稍作停顿再跳复盘页
+    }
+  } catch (err) {
+    // 6) 异常捕获：网络错误 / 返回失败，展示给学生
+    hideLoading();
+    addBubble("sys", "出错了：" + err.message);
+    toast(err.message);
+    // 校验失败时把输入还给学生，避免内容丢失
+    if (!isHintRequest) $("inpAnswer").value = raw;
+  } finally {
+    setBusy(false);
+  }
+}
+
+/* 重置闯关：清空对话与进度 */
+function resetTextGame() {
+  currentStage = 0;
+  starCount = 0;
+  hintUsed = 0;
+  studentAnsweredCount = 0;
+  currentRoundCount = 0;              // 新一轮题目的作答轮次清零
+  currentStartTime  = Date.now();     // 记录开始时间
+  chatHistory = [];
+  $("chatArea").innerHTML = "";
+  $("inpAnswer").value = "";
+  $("chkMastered").checked = false;   // 新题取消“我已掌握”勾选
+  $("chkMasteredImg").checked = false;
+  updateProgressUI();
+  addBubble("assistant",
+    "你好，我是你的数学老师。先请你独立看一遍题目，然后告诉我：你打算怎么解？你的答案是什么？或者你打算从哪儿入手都可以，我们再一起把它想透。");
+}
+
+/* =========================================================================
+   九·补、学习记录：学生完成一道题时写入内存数据库，并结算经验 / 等级 / 徽章
+   ========================================================================= */
+
+/* 统一的结算入口：写入记录 → 计算经验 / 升级 / 新徽章 → 音效与庆祝
+   返回本次结算结果（供复盘页 / 雷霆战机结算页展示），写入失败返回 null */
+function finalizeRecord(record) {
+  const before = myStats();
+  const saved = saveRecordToLocalDB(record);       // 同步写入内存数据库
+  lastRecord = saved;
+  if (!saved) return null;
+
+  const after = myStats();
+  const newBadgeIds = collectNewBadges(currentUser.username, after);
+  const leveledUp = after.level > before.level;
+
+  lastReward = {
+    record: saved,
+    xp: xpForRecord(saved),
+    before, after, newBadges: newBadgeIds, leveledUp
+  };
+
+  // 音效与庆祝：完成 → 升级 → 新徽章
+  playCompleteSound();
+  if (leveledUp) setTimeout(() => playLevelUpSound(), 340);
+  if (newBadgeIds.length) {
+    setTimeout(() => { playBadgeSound(); celebrate(); }, 620);
+    setTimeout(() => toast("🏅 解锁新徽章：" + newBadgeIds.map(id => {
+      const b = BADGES.find(x => x.id === id);
+      return b ? b.name : "";
+    }).filter(Boolean).join("、")), 700);
+  }
+
+  refreshHomeProfile();                            // 同步首页档案卡与右上角等级
+  return lastReward;
+}
+
+function recordQuestionResult(roundsOverride, source, modeOverride) {
+  const durationMs = currentStartTime ? (Date.now() - currentStartTime) : 0;
+  const record = {
+    username:  currentUser ? currentUser.username : "",
+    student:    studentName || "同学",
+    question:   currentQuestion,
+    difficulty: selectedDifficulty,
+    topic:      TOPICS[selectedTopic] || TOPICS.auto,
+    topicKey:   selectedTopic,
+    // roundsOverride 用于学生主动声明掌握的场景（固定记 1 轮）
+    rounds:     (roundsOverride != null) ? roundsOverride : currentRoundCount,
+    correct:    true,                              // 走到收尾即视为掌握（答对）
+    // 记录成绩的两种场景（答对收尾 / 学生自评已掌握）都按满星记录
+    stars:      MAX_STARS,
+    hints:      hintUsed,
+    source:     source || "ai",                    // "ai" 由老师判定 / "self" 学生自评
+    mode:       modeOverride || gameMode,          // "text" 文字闯关 / "image" 图片批改
+    durationMs: durationMs,
+    time:       new Date().toLocaleString("zh-CN"),
+    ts:         Date.now()
+  };
+  return finalizeRecord(record);
+}
+
+/* =========================================================================
+   十、模式 B：图片上传批改 —— 选择图片 / 提交图片 / 重置
+   ========================================================================= */
+
+/* 上传前压缩：等比缩到长边 maxEdge 以内，并转成 JPEG。
+   目的：3MB 的手机照片压到几百 KB，上传更快、token 更少、识别效果几乎无损。
+   （透明 PNG 直接转 JPEG 会变黑，所以先铺一层白底） */
+function compressImage(file, maxEdge, quality) {
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const img = new Image();
+
+    img.onload = function () {
+      try {
+        const scale = Math.min(1, maxEdge / Math.max(img.width, img.height));
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(objectUrl);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      } catch (e) {
+        URL.revokeObjectURL(objectUrl);
+        reject(e);
+      }
+    };
+    img.onerror = function () {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("图片解析失败，请换一张试试"));
+    };
+    img.src = objectUrl;
+  });
+}
+
+/* 选择文件后的处理：类型校验 → 压缩 → 实时缩略图预览 */
+async function handleFileSelect(file) {
+  if (!file) return;
+  const okTypes = ["image/jpeg", "image/png"];
+  if (!okTypes.includes(file.type)) {
+    toast("仅支持 jpg / png 格式的图片");
+    $("inpFile").value = "";
+    clearPendingImage();
+    return;
+  }
+  try {
+    pendingImageDataUrl = await compressImage(file, IMAGE_MAX_EDGE, IMAGE_JPEG_QUALITY);
+    $("previewImg").src = pendingImageDataUrl;
+    $("previewWrap").classList.add("show");
+    const kb = Math.round(pendingImageDataUrl.length * 0.75 / 1024);
+    toast("图片已就绪（约 " + kb + " KB），点【提交图片】开始批改");
+  } catch (err) {
+    pendingImageDataUrl = "";
+    clearPendingImage();
+    toast(err.message || "图片读取失败，请重新选择");
+  }
+}
+
+/* 清除待提交图片与预览 */
+function clearPendingImage() {
+  pendingImageDataUrl = "";
+  $("previewWrap").classList.remove("show");
+  $("previewImg").src = "";
+  $("inpFile").value = "";
+}
+
+/* 提交图片（或纯文字回答）给多模态大模型 */
+async function submitImage() {
+  if (isBusy) return;
+
+  const typed = ($("inpImageAnswer").value || "").trim();
+  const hasImage = !!pendingImageDataUrl;
+
+  // 校验：图片和文字至少要有一个，不能空提交
+  if (!hasImage && !typed) {
+    toast("请上传一张手写照片，或先用文字说说你的想法");
+    return;
+  }
+
+  // 组装报文：有图 → 多模态消息；只有文字 → 普通文本消息
+  const report = buildImageReport(hasImage, typed);
+  const userContent = hasImage
+    ? [
+        { type: "text", text: report },
+        { type: "image_url", image_url: { url: pendingImageDataUrl } }
+      ]
+    : report;
+
+  setBusy(true);
+  showLoading();
+  $("inpImageAnswer").value = "";
+
+  try {
+    // 千问专用参数：思考模式显著减少“把正确解答误判为错误”的情况
+    const reply = await callLLM([
+      { role: "system", content: IMAGE_SYSTEM_PROMPT },
+      { role: "user",   content: userContent }
+    ], { enable_thinking: IMAGE_THINKING });
+    hideLoading();
+
+    // 写入对话记录（图片保留在历史里，复盘页可回看）
+    chatHistory.push({ role: "user", content: userContent });
+    chatHistory.push({ role: "assistant", content: reply });
+
+    const parsed = parseAdvance(reply);
+
+    // 渲染时把报文文本替换为更友好的说明，图片保留
+    if (hasImage) {
+      addBubble("user", [
+        { type: "text", text: typed || "我上传了我的手写解题过程，请帮我看看。" },
+        { type: "image_url", image_url: { url: pendingImageDataUrl } }
+      ]);
+    } else {
+      addBubble("user", typed);
+    }
+    addBubble("assistant", parsed.text);
+
+    // 一次提交 = 学生一轮作答，同样计入进度与教师端统计
+    currentRoundCount += 1;
+    starCount        = Math.min(MAX_STARS, starCount + 1);
+    currentStage     = Math.min(THINKING_FLOW.length, currentStage + 1);
+    studentAnsweredCount += 1;
+
+    // 整题答对（模型判定完成）→ 直接给满 5 颗星
+    if (parsed.complete) starCount = MAX_STARS;
+
+    updateProgressUI();
+
+    // 提交后清掉预览，避免同一张图被重复提交
+    if (hasImage) clearPendingImage();
+
+    // 模型判定整题已想通 → 记入教师端（标注图片批改）并进入复盘页
+    if (parsed.complete) {
+      recordQuestionResult(currentRoundCount, "ai", "image");
+      setTimeout(showReview, 600);
+    }
+  } catch (err) {
+    hideLoading();
+    addBubble("sys", "出错了：" + err.message);
+    toast(err.message);
+  } finally {
+    setBusy(false);
+  }
+}
+
+/* 重置：清空图片、对话记录与本题进度 */
+function resetImageGame() {
+  chatHistory = [];
+  currentStage = 0;
+  starCount = 0;
+  hintUsed = 0;
+  studentAnsweredCount = 0;
+  currentRoundCount = 0;
+  currentStartTime = Date.now();
+  $("chatArea").innerHTML = "";
+  $("chkMastered").checked = false;
+  $("chkMasteredImg").checked = false;
+  $("inpImageAnswer").value = "";
+  clearPendingImage();
+  updateProgressUI();
+  addBubble("assistant",
+    "你好！把你的手写解题过程拍成清晰的照片上传给我，我会陪你一起检查每一步的思路。");
+}
+
+/* =========================================================================
+   十一、复盘页渲染（文字闯关通关后触发）
+   ========================================================================= */
+/* 随机取一条学园箴言 */
+function randomProverb() {
+  return PROVERBS[Math.floor(Math.random() * PROVERBS.length)];
+}
+
+function showReview() {
+  // 渲染完整对话记录
+  const list = $("reviewList");
+  list.innerHTML = "";
+  chatHistory.forEach(entry => {
+    const div = document.createElement("div");
+    div.className = "bubble " + (entry.role === "assistant" ? "ai" : "me");
+    let html = entry.role === "assistant" ? '<span class="who">数学导师</span>' : '<span class="who">我</span>';
+    if (typeof entry.content === "string") {
+      html += escapeHtml(entry.content);
+    } else {
+      entry.content.forEach(p => {
+        if (p.type === "text") html += escapeHtml(p.text || "");
+        if (p.type === "image_url") html += '<img src="' + p.image_url.url + '" alt="图片" />';
+      });
+    }
+    div.innerHTML = html;
+    list.appendChild(div);
+  });
+  list.scrollTop = list.scrollHeight;
+
+  // 展示星星总数
+  let stars = "";
+  for (let i = 0; i < MAX_STARS; i++) stars += i < starCount ? "★" : '<span class="off">☆</span>';
+  $("reviewStars").innerHTML = stars;
+  $("reviewStarText").textContent = "共获得 " + starCount + " 颗星星";
+
+  // 本关收获：经验 / 徽章 / 等级 / 升级提示 / 箴言
+  const reward = lastReward;
+  if (reward && reward.record) {
+    $("rwXp").textContent = "+" + reward.xp + " XP";
+    const r = reward.record;
+    $("rwXpHint").textContent = (r.difficulty === "advanced" ? "进阶题" : "基础题") +
+      ((r.hints || 0) === 0 ? " · 全程没要提示" : " · 用了 " + r.hints + " 次提示");
+    $("rwBadgeCount").textContent = reward.newBadges.length;
+    $("rwLevel").textContent = "Lv." + reward.after.level;
+    $("rwTitle").textContent = reward.after.title;
+
+    $("rwNewBadges").innerHTML = reward.newBadges.map(id => {
+      const b = BADGES.find(x => x.id === id);
+      return b ? '<span class="new-badge">' + b.icon + " " + b.name + "</span>" : "";
+    }).join("");
+
+    const lvEl = $("rwLevelUp");
+    if (reward.leveledUp) {
+      lvEl.style.display = "";
+      lvEl.textContent = "🎉 升级啦！你现在是 Lv." + reward.after.level +
+        " " + reward.after.title + "，继续闯关解锁下一个称号。";
+    } else {
+      lvEl.style.display = "none";
+    }
+  }
+  $("rwProverb").textContent = randomProverb();
+
+  showView("view-review");
+}
+
+/* =========================================================================
+   十一·补、教师端：渲染成绩看板
+   ========================================================================= */
+/* 把毫秒格式化为“x分x秒 / x秒” */
+function formatDuration(ms) {
+  if (!ms) return "—";
+  const s = Math.max(1, Math.round(ms / 1000));
+  if (s < 60) return s + " 秒";
+  return Math.floor(s / 60) + " 分 " + (s % 60) + " 秒";
+}
+
+/* 记录归属：新记录带 username（账号唯一），旧记录只有 student 姓名 */
+function recordOwnerKey(r) {
+  return r.username || r.student || "同学";
+}
+function recordOwnerName(r) {
+  return r.student || "同学";
+}
+
+/* 练习局（雷霆战机 / 应用题侦探）不参与“对话轮次 / 薄弱题型”等单题统计 */
+function isPracticeRecord(r) {
+  return r.mode === "shooter" || r.mode === "detective";
+}
+
+/* 当前登录学生是否拥有这条记录（优先按账号，旧记录退回按姓名） */
+function isMyRecord(r) {
+  if (currentUser && currentUser.username && r.username) {
+    return r.username === currentUser.username;
+  }
+  return recordOwnerName(r) === studentName;
+}
+
+/* 按学生聚合记录：完成题数 / 平均轮次 / 平均用时 / 平均星星 / 薄弱题型 / 最近一次 */
+function aggregateStudents(records) {
+  const map = new Map();
+  records.forEach(r => {
+    const key = recordOwnerKey(r);
+    if (!map.has(key)) map.set(key, []);
+    map.get(key).push(r);
+  });
+
+  const list = [];
+  map.forEach((arr, key) => {
+    const n = arr.length;
+    // 雷霆战机是练习局，不参与“平均对话轮次 / 薄弱题型”的统计
+    const dialogue = arr.filter(r => !isPracticeRecord(r));
+    const avgRounds = dialogue.length
+      ? dialogue.reduce((a, r) => a + (r.rounds || 0), 0) / dialogue.length : null;
+    const avgMs = n ? arr.reduce((a, r) => a + (r.durationMs || 0), 0) / n : 0;
+    const avgStars = n ? arr.reduce((a, r) => a + (r.stars || 0), 0) / n : 0;
+
+    // 薄弱题型 = 平均对话轮次最高的题型（轮次越多说明这类题越吃力）
+    const byTopic = new Map();
+    dialogue.forEach(r => {
+      const k = r.topicKey || "auto";
+      if (!byTopic.has(k)) byTopic.set(k, []);
+      byTopic.get(k).push(r);
+    });
+    let weak = null;
+    byTopic.forEach((rs, k) => {
+      const avg = rs.reduce((a, r) => a + (r.rounds || 0), 0) / rs.length;
+      if (!weak || avg > weak.avg) weak = { key: k, avg, count: rs.length };
+    });
+
+    arr.sort((a, b) => (b.ts || 0) - (a.ts || 0));   // 组内最新在前
+    const latest = arr[0] || {};
+    list.push({
+      key,
+      name: recordOwnerName(latest),
+      username: latest.username || "",
+      records: arr, count: n,
+      avgRounds, avgMs, avgStars,
+      weak, last: arr[0]
+    });
+  });
+
+  // 完成题数多的排前面；相同时平均轮次少的（更高效）排前面
+  list.sort((a, b) => b.count - a.count || (a.avgRounds || 0) - (b.avgRounds || 0));
+  return list;
+}
+
+function renderTeacherDashboard() {
+  const sBody = $("studentTableBody");
+  if (!sBody) return;
+
+  const records = getDisplayRecords();
+  const total = records.length;
+  const dialogue = records.filter(r => !isPracticeRecord(r));
+  const students = aggregateStudents(records);
+
+  /* 顶部指标（平均轮次只统计有对话的闯关记录） */
+  $("mTotal").textContent = total;
+  $("mStudents").textContent = students.length;
+  $("mAvgRounds").textContent = dialogue.length
+    ? (dialogue.reduce((a, r) => a + (r.rounds || 0), 0) / dialogue.length).toFixed(1) : "—";
+  $("mAvgTime").textContent = total
+    ? formatDuration(records.reduce((a, r) => a + (r.durationMs || 0), 0) / total) : "—";
+  const selfCount = dialogue.filter(r => r.source === "self").length;
+  $("mSelfRate").textContent = dialogue.length
+    ? Math.round((selfCount / dialogue.length) * 100) + "%" : "—";
+
+  /* 学生概览：一个学生一行，右侧按钮查看该学生的全部题目 */
+  sBody.innerHTML = "";
+  $("studentEmpty").style.display = students.length ? "none" : "";
+
+  students.forEach(st => {
+    const stStats = statsFromRecords(st.records);
+    const stDialogue = st.records.filter(r => !isPracticeRecord(r));
+    const selfPct = stDialogue.length
+      ? Math.round(stDialogue.filter(r => r.source === "self").length / stDialogue.length * 100) + "%"
+      : "—";
+    const tr = document.createElement("tr");
+    tr.className = "student-row";
+    tr.innerHTML =
+      '<td class="student-name">' + escapeHtml(st.name) +
+        (st.username ? '<br><span class="tag-diff">@' + escapeHtml(st.username) + "</span>" : "") +
+        '<br><span class="tag-diff lvl-tag">Lv.' + stStats.level + " " + stStats.title + "</span>" +
+        '<br><span class="tag-diff">🏅 ' + earnedBadgeIds(stStats).length + "/" + BADGES.length + "</span></td>" +
+      "<td><b>" + st.count + "</b> 题</td>" +
+      "<td>" + (st.avgRounds == null ? "—" : st.avgRounds.toFixed(1) + " 轮") + "</td>" +
+      "<td>" + formatDuration(st.avgMs) + "</td>" +
+      "<td>" + selfPct + "</td>" +
+      '<td class="tag-diff">' + (st.weak ? TOPIC_SHORT[st.weak.key] + "（" + st.weak.avg.toFixed(1) + " 轮）" : "—") + "</td>" +
+      '<td class="tag-diff">' + (st.last ? escapeHtml(st.last.time) : "—") + "</td>" +
+      '<td><button type="button" class="btn ghost small">查看全部题目（' + st.count + "）</button></td>";
+    tr.querySelector("button").addEventListener("click", () => openStudentQuestions(st.key));
+    sBody.appendChild(tr);
+  });
+
+  /* 整体分析提示 */
+  const analysis = $("analysisText");
+  if (total) {
+    const weakest = students.filter(st => st.avgRounds != null)
+      .sort((a, b) => b.avgRounds - a.avgRounds)[0];
+    analysis.style.display = "";
+    analysis.innerHTML =
+      "共 <b>" + students.length + "</b> 名学生、<b>" + total + "</b> 条记录。" +
+      (dialogue.length
+        ? "整体平均 <b>" + $("mAvgRounds").textContent + "</b> 轮掌握。"
+        : "暂无对话轮次数据（雷霆战机、应用题侦探等练习局不计入轮次）。") +
+      (weakest ? "其中「" + escapeHtml(weakest.name) + "」平均轮次最多（" +
+        weakest.avgRounds.toFixed(1) + " 轮），可以优先关注。" : "") +
+      '<span class="muted"> 点击右侧「查看全部题目」可查看每位学生的完整答题记录。</span>';
+  } else {
+    analysis.style.display = "none";
+  }
+
+  /* 弹窗打开时，跟随自动刷新同步内容 */
+  if (openQuestionsStudent && $("studentQuestionsModal").classList.contains("show")) {
+    renderStudentQuestions(openQuestionsStudent);
+  }
+}
+
+/* 打开某位学生的全部答题记录弹窗（key 是账号用户名，旧记录为姓名） */
+function openStudentQuestions(key) {
+  const records = getDisplayRecords().filter(r => recordOwnerKey(r) === key);
+  if (!records.length) { toast("该学生暂无答题记录"); return; }
+  openQuestionsStudent = key;
+  renderStudentQuestions(key);
+  $("studentQuestionsModal").classList.add("show");
+}
+
+/* 渲染某位学生的全部答题记录（最新在前） */
+function renderStudentQuestions(key) {
+  const records = getDisplayRecords()
+    .filter(r => recordOwnerKey(r) === key)
+    .sort((a, b) => (b.ts || 0) - (a.ts || 0));
+  const list = $("studentQuestionsList");
+  if (!list) return;
+
+  const displayName = records.length ? recordOwnerName(records[0]) : "学生";
+  const username = records.length ? (records[0].username || "") : "";
+  $("studentQuestionsTitle").textContent = displayName + " 的答题记录";
+
+  if (!records.length) {
+    $("studentQuestionsMeta").textContent = "暂无答题记录。";
+    list.innerHTML = '<p class="muted">该学生还没有完成任何题目。</p>';
+    return;
+  }
+
+  const n = records.length;
+  const dialogue = records.filter(r => !isPracticeRecord(r));
+  const avgRounds = dialogue.length
+    ? dialogue.reduce((a, r) => a + (r.rounds || 0), 0) / dialogue.length : null;
+  const avgMs = records.reduce((a, r) => a + (r.durationMs || 0), 0) / n;
+  const shooterCount = records.filter(r => r.mode === "shooter").length;
+  const detectiveCount = records.filter(r => r.mode === "detective").length;
+  const practiceParts = [];
+  if (shooterCount) practiceParts.push(shooterCount + " 局雷霆战机");
+  if (detectiveCount) practiceParts.push(detectiveCount + " 次侦探案件");
+
+  // 薄弱题型：平均轮次最高的题型（只看对话闯关记录）
+  const byTopic = new Map();
+  dialogue.forEach(r => {
+    const k = r.topicKey || "auto";
+    if (!byTopic.has(k)) byTopic.set(k, []);
+    byTopic.get(k).push(r);
+  });
+  let weak = null;
+  byTopic.forEach((rs, k) => {
+    const avg = rs.reduce((a, r) => a + (r.rounds || 0), 0) / rs.length;
+    if (!weak || avg > weak.avg) weak = { key: k, avg };
+  });
+
+  $("studentQuestionsMeta").innerHTML =
+    (username ? '<span class="muted">@' + escapeHtml(username) + "</span> · " : "") +
+    "共 <b>" + n + "</b> 条记录" +
+    (practiceParts.length ? "（含 " + practiceParts.join("、") + "）" : "") +
+    (avgRounds != null ? " · 平均 <b>" + avgRounds.toFixed(1) + "</b> 轮" : "") +
+    " · 平均用时 <b>" + formatDuration(avgMs) + "</b>" +
+    (weak ? " · 薄弱题型：<b>" + TOPIC_SHORT[weak.key] + "</b>（平均 " + weak.avg.toFixed(1) + " 轮）" : "") +
+    '<span class="muted"> · 最新在前</span>';
+
+  list.innerHTML = "";
+  records.forEach((r, idx) => {
+    const item = document.createElement("div");
+    item.className = "sq-item";
+
+    const q = document.createElement("p");
+    q.className = "sq-q";
+    q.textContent = "第 " + (n - idx) + " 条：" + (r.question || "（题目未记录）");
+    item.appendChild(q);
+
+    const meta = document.createElement("div");
+    meta.className = "sq-meta";
+    const tags = r.mode === "shooter"
+      ? [
+          r.difficulty === "basic" ? "基础" : "进阶",
+          "雷霆战机",
+          "答对 " + (r.rightCount || 0) + "/" + (r.answered || 0),
+          "正确率 " + Math.round((r.accuracy || 0) * 100) + "%",
+          "+" + xpForRecord(r) + " XP",
+          formatDuration(r.durationMs),
+          r.time || ""
+        ]
+      : r.mode === "detective"
+      ? [
+          "应用题侦探",
+          "5 条线索",
+          "一次答对 " + (r.rightCount || 0) + "/" + (r.answered || 5),
+          "破案得分 " + (r.score || 0),
+          "+" + xpForRecord(r) + " XP",
+          formatDuration(r.durationMs),
+          r.time || ""
+        ]
+      : [
+          r.difficulty === "basic" ? "基础" : "进阶",
+          TOPIC_SHORT[r.topicKey || "auto"],
+          r.mode === "image" ? "图片批改" : "文字闯关",
+          (r.rounds || 0) + " 轮",
+          (r.stars || 0) + " ★",
+          "+" + xpForRecord(r) + " XP",
+          (r.hints || 0) + " 次提示",
+          formatDuration(r.durationMs),
+          r.source === "self" ? "自评已掌握" : "答对完成",
+          r.time || ""
+        ];
+    tags.forEach(t => {
+      if (!t) return;
+      const s = document.createElement("span");
+      s.textContent = t;
+      meta.appendChild(s);
+    });
+    item.appendChild(meta);
+    list.appendChild(item);
+  });
+}
+
+function closeStudentQuestions() {
+  openQuestionsStudent = "";
+  $("studentQuestionsModal").classList.remove("show");
+}
+
+/* 成就墙打开 / 关闭 */
+function openBadgeModal() {
+  renderBadgeGrid(earnedBadgeIds(myStats()));
+  $("badgeModal").classList.add("show");
+}
+function closeBadgeModal() {
+  $("badgeModal").classList.remove("show");
+}
+
+/* 刷新教师端数据：单机版直接从内存数据库读取（silent=true 用于自动刷新） */
+async function refreshTeacherData(silent) {
+  try {
+    allRecords = await fetchClassRecords();
+  } catch (e) {
+    if (!silent) toast("读取学习记录失败：" + e.message);
+    allRecords = [];
+  }
+  const el = $("teacherSync");
+  if (el) {
+    el.textContent =
+      "数据来自本页内存（单机版，共 " + allRecords.length + " 条记录）· 最后更新 " +
+      new Date().toLocaleTimeString("zh-CN");
+  }
+  renderTeacherDashboard();
+}
+
+/* 教师端每 15 秒自动刷新一次（页面可见且停在教师端时） */
+function startTeacherAutoRefresh() {
+  if (teacherRefreshTimer) clearInterval(teacherRefreshTimer);
+  teacherRefreshTimer = setInterval(() => {
+    if (document.visibilityState === "visible" &&
+        $("view-teacher").classList.contains("active")) {
+      refreshTeacherData(true);
+    }
+  }, 15000);
+}
+
+/* 学生端：打开“同学情况”（先读一次内存里的最新记录） */
+async function openClassView() {
+  try {
+    allRecords = await fetchClassRecords();
+  } catch (e) {
+    toast("读取学习记录失败：" + e.message);
+    allRecords = [];
+  }
+  renderClassView();
+  showView("view-class");
+}
+
+function renderClassView() {
+  const records = getDisplayRecords();
+  const students = aggregateStudents(records);
+  const myRecords = records.filter(isMyRecord);
+  const myDialogue = myRecords.filter(r => !isPracticeRecord(r));
+  const myRounds = myDialogue.length
+    ? myDialogue.reduce((a, r) => a + (r.rounds || 0), 0) / myDialogue.length : 0;
+  const classDialogue = records.filter(r => !isPracticeRecord(r));
+  const classRounds = classDialogue.length
+    ? classDialogue.reduce((a, r) => a + (r.rounds || 0), 0) / classDialogue.length : 0;
+
+  $("cMyTotal").textContent = myRecords.length;
+  $("cMyRounds").textContent = myDialogue.length ? myRounds.toFixed(1) : "—";
+  $("cClassRounds").textContent = classDialogue.length ? classRounds.toFixed(1) : "—";
+  $("cStudents").textContent = students.length;
+
+  /* 同学榜 */
+  const body = $("classTableBody");
+  body.innerHTML = "";
+  $("classEmpty").style.display = students.length ? "none" : "";
+
+  students.forEach((st, i) => {
+    const isMe = st.records.some(isMyRecord);
+    const stStats = statsFromRecords(st.records);
+    const tr = document.createElement("tr");
+    if (isMe) tr.className = "student-row active";
+    tr.innerHTML =
+      '<td><span class="rank-chip">' + (i + 1) + "</span></td>" +
+      '<td class="student-name">' + escapeHtml(st.name) +
+        (isMe ? ' <span class="tag-diff">(我)</span>' : "") +
+        '<br><span class="tag-diff">Lv.' + stStats.level + " " + stStats.title +
+        " · 🏅 " + earnedBadgeIds(stStats).length + "</span></td>" +
+      "<td><b>" + st.count + "</b> 题</td>" +
+      "<td>" + (st.avgRounds == null ? "—" : st.avgRounds.toFixed(1) + " 轮") + "</td>" +
+      "<td>" + formatDuration(st.avgMs) + "</td>" +
+      "<td>" + st.records.reduce((a, r) => a + (r.stars || 0), 0) + " ★</td>" +
+      '<td class="tag-diff">' + (st.last ? escapeHtml(st.last.time) : "—") + "</td>";
+    body.appendChild(tr);
+  });
+
+  /* 最近动态 */
+  const recent = records.slice().sort((a, b) => (b.ts || 0) - (a.ts || 0)).slice(0, 12);
+  const ul = $("classRecent");
+  ul.innerHTML = "";
+  $("recentEmpty").style.display = recent.length ? "none" : "";
+  recent.forEach(r => {
+    const li = document.createElement("li");
+    const isShooter = r.mode === "shooter";
+    const isDetective = r.mode === "detective";
+    const detail = isShooter
+      ? "答对 " + (r.rightCount || 0) + "/" + (r.answered || 0) + " · 正确率 " +
+        Math.round((r.accuracy || 0) * 100) + "%"
+      : isDetective
+      ? "破案得分 " + (r.score || 0) + " · 一次答对 " + (r.rightCount || 0) + "/" + (r.answered || 5)
+      : r.rounds + " 轮";
+    const modeText = isShooter || isDetective ? "" : (r.mode === "image" ? "图片批改" : "文字闯关");
+    li.innerHTML =
+      '<span class="who">' + escapeHtml(recordOwnerName(r)) + "</span>" +
+      '<span class="meta">' + TOPIC_SHORT[r.topicKey || "auto"] +
+        (modeText ? " · " + modeText : "") + " · " +
+        detail + " · " +
+        (r.durationMs ? formatDuration(r.durationMs) : "—") + " · " + escapeHtml(r.time) + "</span>";
+    ul.appendChild(li);
+  });
+}
+
+/* 关闭学生答题记录弹窗：见 renderTeacherDashboard 后的 closeStudentQuestions */
+
+/* =========================================================================
+   十四、雷霆战机 · 数学空战
+   —— 敌机身上写着候选答案；先算出题目，再击落正确答案。
+      打错、或放跑写着正确答案的敌机都会掉血；每局 10 题。
+      结束后把成绩写进学习记录，并参与经验 / 等级 / 徽章结算。
+   ========================================================================= */
+const SHOOTER_W = 900;      // 桌面端逻辑宽度（窄屏会自动降到 620，保证文字可读）
+const SHOOTER_H = 560;
+const SHOOTER_MAX_HP = 3;
+const SHOOTER_QUESTIONS = 10;
+
+const shooter = {
+  running: false,
+  ended: false,
+  raf: 0,
+  lastTs: 0,
+  W: SHOOTER_W,
+  H: SHOOTER_H,
+  scaleX: 1,
+  scaleY: 1,
+  ship: { x: SHOOTER_W / 2, y: SHOOTER_H - 52 },
+  bullets: [],
+  enemies: [],
+  particles: [],
+  stars: [],
+  keys: { left: false, right: false },
+  firing: false,
+  cooldown: 0,
+  hp: SHOOTER_MAX_HP,
+  score: 0,
+  combo: 0,
+  bestCombo: 0,
+  answered: 0,
+  rightCount: 0,
+  total: SHOOTER_QUESTIONS,
+  question: null,
+  mistakes: [],
+  qIndex: 0,
+  transition: 0,
+  elapsed: 0,
+  startedAt: 0,
+  saved: false,
+  shake: 0,
+  difficulty: "basic",
+  customQueue: null,
+  lastText: ""
+};
+
+/* --- 出题：全部本地生成，不依赖 AI / 网络 --- */
+function shooterRand(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function shooterShuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+
+/* 窄屏只放 3 架敌机（1 正确 + 2 干扰），桌面放 4 架，保证数字够大、不挤在一起 */
+function shooterOptionCount() {
+  return shooter.W < 800 ? 3 : 4;
+}
+
+/* 生成“像模像样”的干扰项：都是正确答案附近的数 */
+function makeShooterOptions(answer, count) {
+  const n = count === 3 ? 3 : 4;
+  const pool = new Set([answer]);
+  const deltas = [1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 10, -10];
+  let guard = 0;
+  while (pool.size < 6 && guard++ < 100) {
+    const d = deltas[shooterRand(0, deltas.length - 1)];
+    const v = answer + d;
+    if (v !== answer) pool.add(v);
+  }
+  let extra = 1;
+  while (pool.size < n + 2) pool.add(answer + extra++);
+  const distractors = shooterShuffle([...pool].filter(v => v !== answer)).slice(0, n - 1);
+  return shooterShuffle([answer].concat(distractors));
+}
+
+function makeShooterQuestion(difficulty) {
+  const d = difficulty === "advanced" ? "advanced" : "basic";
+  const roll = shooterRand(0, 3);
+  let text = "", answer = 0, explain = "";
+
+  if (d === "basic") {
+    if (roll === 0) {
+      const a = shooterRand(12, 89), b = shooterRand(11, 59);
+      text = a + " + " + b + " = ?";
+      answer = a + b;
+      explain = "先算个位再算十位：" + a + " + " + b + " = " + answer;
+    } else if (roll === 1) {
+      const a = shooterRand(35, 99), b = shooterRand(11, 34);
+      text = a + " − " + b + " = ?";
+      answer = a - b;
+      explain = "个位不够减时向前一位借 1：" + a + " − " + b + " = " + answer;
+    } else if (roll === 2) {
+      const a = shooterRand(3, 12), b = shooterRand(4, 12);
+      text = a + " × " + b + " = ?";
+      answer = a * b;
+      explain = "用乘法口诀：" + a + " × " + b + " = " + answer;
+    } else {
+      const x = shooterRand(2, 15), a = shooterRand(3, 19);
+      text = "x + " + a + " = " + (x + a) + "，x = ?";
+      answer = x;
+      explain = "两边同时减去 " + a + "：x = " + (x + a) + " − " + a + " = " + x;
+    }
+  } else {
+    if (roll === 0) {
+      const x = shooterRand(2, 12), a = shooterRand(2, 9), b = shooterRand(1, 19);
+      text = a + "x + " + b + " = " + (a * x + b) + "，x = ?";
+      answer = x;
+      explain = "先移项：" + a + "x = " + (a * x) + "，再两边除以 " + a + "：x = " + x;
+    } else if (roll === 1) {
+      const x = shooterRand(1, 10), a = shooterRand(2, 6), b = shooterRand(1, 9);
+      text = a + "(x + " + b + ") = " + (a * (x + b)) + "，x = ?";
+      answer = x;
+      explain = "两边先除以 " + a + "：x + " + b + " = " + (x + b) + "，所以 x = " + x;
+    } else if (roll === 2) {
+      const x = shooterRand(1, 9), c = shooterRand(1, 5), a = c + shooterRand(1, 4);
+      const b = shooterRand(1, 12), d = (a - c) * x + b;
+      text = a + "x + " + b + " = " + c + "x + " + d + "，x = ?";
+      answer = x;
+      explain = "两边同时减去 " + c + "x：" + (a - c) + "x + " + b + " = " + d + "，解得 x = " + x;
+    } else {
+      const p = [10, 20, 25, 50][shooterRand(0, 3)];
+      const a = 20 * shooterRand(2, 6);   // 保证 10/20/25/50% 都是整数
+      answer = a * p / 100;
+      text = a + " 的 " + p + "% 是 ?";
+      explain = p + "% = " + (p / 100) + "，所以 " + a + " × " + (p / 100) + " = " + answer;
+    }
+  }
+  return { text, answer, explain, options: makeShooterOptions(answer, shooterOptionCount()) };
+}
+
+function nextShooterQuestion() {
+  if (shooter.customQueue && shooter.customQueue.length) {
+    const base = shooter.customQueue.shift();
+    return {
+      text: base.text,
+      answer: base.answer,
+      explain: base.explain,
+      options: makeShooterOptions(base.answer, shooterOptionCount())
+    };
+  }
+  let q = makeShooterQuestion(shooter.difficulty);
+  let guard = 0;
+  while (q.text === shooter.lastText && guard++ < 8) q = makeShooterQuestion(shooter.difficulty);
+  shooter.lastText = q.text;
+  return q;
+}
+
+/* --- 局内状态 --- */
+function shooterStars(acc, answered) {
+  if (!answered) return 1;
+  if (acc >= 0.9) return 5;
+  if (acc >= 0.75) return 4;
+  if (acc >= 0.6) return 3;
+  if (acc >= 0.4) return 2;
+  return 1;
+}
+
+function updateShooterHud() {
+  const hp = $("shooterHp");
+  if (!hp) return;
+  hp.textContent = "♥".repeat(Math.max(0, shooter.hp)) + "♡".repeat(Math.max(0, SHOOTER_MAX_HP - shooter.hp));
+  $("shooterScore").textContent = shooter.score + " 分";
+  $("shooterCombo").textContent = "连击 " + shooter.combo;
+  $("shooterProgress").textContent = Math.min(shooter.answered, shooter.total) + " / " + shooter.total;
+}
+
+function shooterFeedback(text, kind) {
+  const el = $("shooterFeedback");
+  if (!el) return;
+  el.textContent = text || "";
+  el.className = "shooter-feedback" + (kind ? " " + kind : "");
+}
+
+function hideShooterFeedback() {
+  const el = $("shooterFeedback");
+  if (!el) return;
+  el.textContent = "";
+  el.className = "shooter-feedback";
+}
+
+function shooterSpawnQuestion(q) {
+  shooter.question = q;
+  $("shooterQuestion").textContent = q.text;
+  hideShooterFeedback();
+  shooter.enemies = [];
+
+  const xs = (q.options.length === 3
+    ? [0.22, 0.5, 0.78]
+    : [0.18, 0.39, 0.61, 0.82]).map(p => shooter.W * p);
+  const slots = shooterShuffle(xs.slice(0, q.options.length));
+  q.options.forEach((opt, i) => {
+    shooter.enemies.push({
+      x: slots[i],
+      baseX: slots[i],
+      // 几架敌机在画面上方错落排开，方便一眼比较候选答案
+      y: shooter.H * 0.12 + i * shooter.H * 0.115,
+      w: 132,
+      h: 60,
+      // 下落速度按画面高度缩放：手机端也能留出足够的思考时间
+      vy: (shooter.H / SHOOTER_H) * (13 + shooter.qIndex * 1.2),
+      phase: Math.random() * Math.PI * 2,
+      drift: (shooter.W < 800 ? 6 : 10) + Math.random() * 8,
+      value: opt,
+      correct: opt === q.answer,
+      dead: false,
+      reveal: 0
+    });
+  });
+  updateShooterHud();
+}
+
+/* --- 声音 --- */
+function shooterSoundShoot() { playTone(900, 0, 0.045, "square", 0.02); }
+function shooterSoundCorrect() { playTone(660, 0, 0.09, "sine", 0.06); playTone(990, 0.07, 0.12, "sine", 0.05); }
+function shooterSoundWrong() { playTone(170, 0, 0.2, "sawtooth", 0.055); }
+function shooterSoundOver() { [440, 349, 262, 175].forEach((f, i) => playTone(f, i * 0.12, 0.22, "triangle", 0.06)); }
+
+/* --- 粒子 --- */
+function shooterBurst(x, y, color, n) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const sp = 60 + Math.random() * 280;
+    shooter.particles.push({
+      x, y,
+      vx: Math.cos(a) * sp,
+      vy: Math.sin(a) * sp,
+      life: 0.45 + Math.random() * 0.5,
+      max: 0.95,
+      size: 2 + Math.random() * 3,
+      color
+    });
+  }
+}
+
+/* --- 开火 --- */
+function shooterFire() {
+  if (!shooter.running || shooter.transition > 0) return;
+  if (shooter.cooldown > 0) return;
+  shooter.cooldown = 0.18;
+  shooter.bullets.push({ x: shooter.ship.x, y: shooter.ship.y - 26, v: 780 });
+  shooterSoundShoot();
+}
+
+/* --- 命中 / 漏掉 --- */
+function shooterResolveEnemy(enemy, hit) {
+  if (!shooter.running || shooter.transition > 0) return;
+  const q = shooter.question;
+  if (!q) return;
+
+  const chosen = enemy.value;
+  const correct = hit && chosen === q.answer;
+  shooter.answered++;
+  enemy.dead = true;
+  shooter.shake = correct ? 0.12 : 0.32;
+
+  if (correct) {
+    shooter.rightCount++;
+    shooter.combo++;
+    shooter.bestCombo = Math.max(shooter.bestCombo, shooter.combo);
+    const gain = 100 + shooter.combo * 25;
+    shooter.score += gain;
+    shooterBurst(enemy.x, enemy.y, "#34d399", 26);
+    shooterFeedback("答对！+" + gain + " 分" + (shooter.combo >= 3 ? " · 连击 ×" + shooter.combo : ""), "ok");
+    shooterSoundCorrect();
+    shooter.transition = 1.1;
+  } else {
+    shooter.combo = 0;
+    shooter.hp--;
+    shooter.mistakes.push({
+      text: q.text,
+      answer: q.answer,
+      chosen: hit ? chosen : null,
+      explain: q.explain
+    });
+    shooterBurst(enemy.x, enemy.y, "#ef4444", 22);
+    shooterFeedback(
+      (hit ? "打错了！" : "正确答案溜走了！") + " 正确答案是 " + q.answer + " —— " + q.explain,
+      "bad"
+    );
+    // 让写正确答案的那架敌机亮起来
+    const rightEnemy = shooter.enemies.find(e => e.correct && !e.dead);
+    if (rightEnemy) rightEnemy.reveal = 3;
+    shooterSoundWrong();
+    shooter.transition = 3.0;   // 留足时间看正确解法的提示
+  }
+  updateShooterHud();
+}
+
+function shooterAfterResolve() {
+  if (shooter.hp <= 0) { endShooterGame("lost"); return; }
+  if (shooter.answered >= shooter.total) { endShooterGame("won"); return; }
+  shooter.qIndex++;
+  shooterSpawnQuestion(nextShooterQuestion());
+}
+
+/* --- 更新 --- */
+function shooterUpdate(dt) {
+  shooter.elapsed += dt;
+  shooter.stars.forEach(s => {
+    s.y += s.v * dt;
+    if (s.y > shooter.H) { s.y = -2; s.x = Math.random() * shooter.W; }
+  });
+
+  // 战机左右移动
+  const speed = 520 * (shooter.W / SHOOTER_W);
+  if (shooter.keys.left) shooter.ship.x -= speed * dt;
+  if (shooter.keys.right) shooter.ship.x += speed * dt;
+  shooter.ship.x = Math.max(34, Math.min(shooter.W - 34, shooter.ship.x));
+
+  // 按住开火
+  shooter.cooldown -= dt;
+  if (shooter.firing) shooterFire();
+
+  // 子弹
+  shooter.bullets.forEach(b => { b.y -= b.v * dt; });
+  shooter.bullets = shooter.bullets.filter(b => b.y > -20);
+
+  // 粒子
+  shooter.particles.forEach(p => {
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+    p.vx *= 0.96;
+    p.vy *= 0.96;
+    p.life -= dt;
+  });
+  shooter.particles = shooter.particles.filter(p => p.life > 0);
+
+  if (shooter.shake > 0) shooter.shake = Math.max(0, shooter.shake - dt);
+
+  // 结算停顿：敌机静止，让玩家看清正确答案
+  if (shooter.transition > 0) {
+    shooter.transition -= dt;
+    if (shooter.transition <= 0) {
+      shooter.transition = 0;
+      shooterAfterResolve();
+    }
+    return;
+  }
+
+  // 敌机下落 + 轻微漂移
+  for (const e of shooter.enemies) {
+    if (e.dead) continue;
+    e.y += e.vy * dt;
+    if (e.reveal > 0) e.reveal -= dt;
+    else e.x = e.baseX + Math.sin(shooter.elapsed * 0.9 + e.phase) * e.drift;
+  }
+
+  // 子弹命中敌机
+  for (const b of shooter.bullets) {
+    for (const e of shooter.enemies) {
+      if (e.dead) continue;
+      if (Math.abs(b.x - e.x) < e.w / 2 + 2 && Math.abs(b.y - e.y) < e.h / 2 + 10) {
+        b.dead = true;
+        shooterResolveEnemy(e, true);
+        break;
+      }
+    }
+  }
+  shooter.bullets = shooter.bullets.filter(b => !b.dead);
+
+  // 敌机飞出底部：只有“正确答案”飞走才算答错
+  for (const e of shooter.enemies) {
+    if (e.dead) continue;
+    if (e.y > shooter.H - 26) {
+      if (e.correct) shooterResolveEnemy(e, false);
+      else e.dead = true;
+    }
+  }
+}
+
+/* --- 绘制 --- */
+function shooterRoundRect(ctx, x, y, w, h, r) {
+  const rr = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + rr, y);
+  ctx.arcTo(x + w, y, x + w, y + h, rr);
+  ctx.arcTo(x + w, y + h, x, y + h, rr);
+  ctx.arcTo(x, y + h, x, y, rr);
+  ctx.arcTo(x, y, x + w, y, rr);
+  ctx.closePath();
+}
+
+function shooterDraw() {
+  const c = $("shooterCanvas");
+  if (!c) return;
+  const W = shooter.W, H = shooter.H;
+  const ctx = c.getContext("2d");
+  const sx = c.width / W;
+  const sy = c.height / H;
+  ctx.setTransform(sx, 0, 0, sy, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+
+  // 背景
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, "#060a1c");
+  bg.addColorStop(0.55, "#0b132b");
+  bg.addColorStop(1, "#111a38");
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // 星云光晕
+  const neb = ctx.createRadialGradient(W * 0.72, H * 0.18, 10, W * 0.72, H * 0.18, W * 0.37);
+  neb.addColorStop(0, "rgba(59,130,246,.16)");
+  neb.addColorStop(1, "rgba(59,130,246,0)");
+  ctx.fillStyle = neb;
+  ctx.fillRect(0, 0, W, H);
+  const neb2 = ctx.createRadialGradient(W * 0.18, H * 0.75, 10, W * 0.18, H * 0.75, W * 0.33);
+  neb2.addColorStop(0, "rgba(168,85,247,.12)");
+  neb2.addColorStop(1, "rgba(168,85,247,0)");
+  ctx.fillStyle = neb2;
+  ctx.fillRect(0, 0, W, H);
+
+  // 星空
+  for (const s of shooter.stars) {
+    ctx.globalAlpha = s.a;
+    ctx.fillStyle = "#e2e8f0";
+    ctx.fillRect(s.x, s.y, s.r, s.r * 2.2);
+  }
+  ctx.globalAlpha = 1;
+
+  // 轻微震动
+  const shaking = shooter.shake > 0;
+  const ox = shaking ? (Math.random() - 0.5) * 9 : 0;
+  const oy = shaking ? (Math.random() - 0.5) * 9 : 0;
+  ctx.save();
+  ctx.translate(ox, oy);
+
+  // 敌机
+  for (const e of shooter.enemies) {
+    if (e.dead) continue;
+    shooterDrawEnemy(ctx, e);
+  }
+
+  // 子弹
+  ctx.shadowColor = "rgba(34,211,238,.9)";
+  ctx.shadowBlur = 12;
+  ctx.fillStyle = "#67e8f9";
+  for (const b of shooter.bullets) {
+    ctx.fillRect(b.x - 2, b.y - 16, 4, 18);
+  }
+  ctx.shadowBlur = 0;
+
+  // 战机
+  if (!shooter.ended) shooterDrawShip(ctx);
+
+  // 粒子
+  for (const p of shooter.particles) {
+    ctx.globalAlpha = Math.max(0, p.life / p.max);
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x, p.y, p.size, p.size);
+  }
+  ctx.globalAlpha = 1;
+  ctx.restore();
+
+  // 底部危险线
+  ctx.fillStyle = "rgba(239,68,68,.18)";
+  ctx.fillRect(0, shooter.H - 8, shooter.W, 2);
+}
+
+function shooterDrawEnemy(ctx, e) {
+  const w = e.w, h = e.h;
+  const reveal = e.reveal > 0;
+  ctx.save();
+  ctx.translate(e.x, e.y);
+
+  // 机翼
+  ctx.fillStyle = reveal ? "#047857" : "#1e3a8a";
+  ctx.beginPath();
+  ctx.moveTo(-w / 2 + 6, -6);
+  ctx.lineTo(-w / 2 - 12, h / 2 - 8);
+  ctx.lineTo(-w / 2 + 10, h / 2 - 8);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(w / 2 - 6, -6);
+  ctx.lineTo(w / 2 + 12, h / 2 - 8);
+  ctx.lineTo(w / 2 - 10, h / 2 - 8);
+  ctx.closePath();
+  ctx.fill();
+
+  // 机身
+  ctx.shadowColor = reveal ? "rgba(52,211,153,.9)" : "rgba(56,189,248,.45)";
+  ctx.shadowBlur = reveal ? 26 : 12;
+  const g = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
+  if (reveal) { g.addColorStop(0, "#10b981"); g.addColorStop(1, "#064e3b"); }
+  else { g.addColorStop(0, "#1d4ed8"); g.addColorStop(1, "#0f172a"); }
+  shooterRoundRect(ctx, -w / 2, -h / 2, w, h, 14);
+  ctx.fillStyle = g;
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = reveal ? "#34d399" : "#38bdf8";
+  ctx.stroke();
+
+  // 顶部小灯
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = reveal ? "#a7f3d0" : "#93c5fd";
+  ctx.beginPath();
+  ctx.arc(0, -h / 2 + 11, 3.2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 答案数字
+  ctx.fillStyle = "#f8fafc";
+  ctx.font = "bold 34px -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(String(e.value), 0, 5);
+  ctx.restore();
+}
+
+function shooterDrawShip(ctx) {
+  const x = shooter.ship.x, y = shooter.ship.y;
+  ctx.save();
+  ctx.shadowColor = "rgba(56,189,248,.9)";
+  ctx.shadowBlur = 18;
+  ctx.fillStyle = "#e0f2fe";
+  ctx.beginPath();
+  ctx.moveTo(x, y - 26);
+  ctx.lineTo(x + 19, y + 16);
+  ctx.lineTo(x, y + 8);
+  ctx.lineTo(x - 19, y + 16);
+  ctx.closePath();
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = "#2563eb";
+  ctx.beginPath();
+  ctx.arc(x, y - 6, 5, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 尾焰
+  const flame = 12 + Math.random() * 12;
+  ctx.fillStyle = "rgba(251,191,36,.9)";
+  ctx.beginPath();
+  ctx.moveTo(x - 6, y + 12);
+  ctx.lineTo(x, y + 12 + flame);
+  ctx.lineTo(x + 6, y + 12);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+/* --- 画布尺寸 / 空闲画面 --- */
+function shooterResize() {
+  const c = $("shooterCanvas");
+  if (!c) return;
+  const wrap = c.parentElement;
+  const wrapWidth = wrap ? wrap.getBoundingClientRect().width : c.getBoundingClientRect().width;
+  if (!wrapWidth) return;
+
+  // 窄屏用更小的“逻辑画布”+ 更方的比例，这样敌机上的数字不会缩得看不清
+  const narrow = wrapWidth < 560;
+  const logicalW = narrow ? 620 : 900;
+  const logicalH = narrow ? 620 : 560;
+  shooter.W = logicalW;
+  shooter.H = logicalH;
+  if (wrap) wrap.style.aspectRatio = logicalW + " / " + logicalH;
+
+  const rect = c.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  const w = Math.round(rect.width * dpr);
+  const h = Math.round(rect.height * dpr);
+  if (c.width !== w || c.height !== h) { c.width = w; c.height = h; }
+  shooter.scaleX = w / logicalW;
+  shooter.scaleY = h / logicalH;
+
+  // 不在游戏中时，让战机和画布尺寸保持同步
+  if (!shooter.running) {
+    shooter.ship.x = logicalW / 2;
+    shooter.ship.y = logicalH - 52;
+  }
+}
+
+function shooterInitStars() {
+  shooter.stars = [];
+  for (let i = 0; i < 90; i++) {
+    shooter.stars.push({
+      x: Math.random() * shooter.W,
+      y: Math.random() * shooter.H,
+      r: Math.random() * 1.5 + 0.4,
+      v: 14 + Math.random() * 46,
+      a: 0.25 + Math.random() * 0.6
+    });
+  }
+}
+
+/* --- 开局 / 结束 --- */
+function stopShooterGame() {
+  shooter.running = false;
+  shooter.firing = false;
+  if (shooter.raf) { cancelAnimationFrame(shooter.raf); shooter.raf = 0; }
+  shooter.keys.left = false;
+  shooter.keys.right = false;
+}
+
+function startShooterGame(opts) {
+  opts = opts || {};
+  const queue = Array.isArray(opts.queue) && opts.queue.length ? opts.queue.slice() : null;
+
+  stopShooterGame();
+  shooterResize();
+  if (!shooter.stars.length) shooterInitStars();
+
+  shooter.running = true;
+  shooter.ended = false;
+  shooter.saved = false;
+  shooter.hp = SHOOTER_MAX_HP;
+  shooter.score = 0;
+  shooter.combo = 0;
+  shooter.bestCombo = 0;
+  shooter.answered = 0;
+  shooter.rightCount = 0;
+  shooter.qIndex = 0;
+  shooter.transition = 0;
+  shooter.elapsed = 0;
+  shooter.startedAt = Date.now();
+  shooter.bullets = [];
+  shooter.particles = [];
+  shooter.mistakes = [];
+  shooter.ship.x = shooter.W / 2;
+  shooter.ship.y = shooter.H - 52;
+  shooter.firing = false;
+  shooter.lastText = "";
+  shooter.customQueue = queue;
+  shooter.total = queue ? queue.length : SHOOTER_QUESTIONS;
+  const sel = $("selShooterDifficulty");
+  shooter.difficulty = sel ? sel.value : "basic";
+
+  $("shooterDiffBadge").textContent = shooter.difficulty === "advanced" ? "进阶" : "基础";
+  $("shooterIntro").style.display = "none";
+  $("shooterResult").style.display = "none";
+  hideShooterFeedback();
+
+  // 自定义队列的游戏也用同一套难度（只影响后续补题，这里队列用尽就结束）
+  shooterSpawnQuestion(nextShooterQuestion());
+  updateShooterHud();
+  ensureAudio();
+
+  shooter.lastTs = 0;
+  cancelAnimationFrame(shooter.raf);
+  shooter.raf = requestAnimationFrame(shooterLoop);
+}
+
+function endShooterGame(reason) {
+  if (!shooter.running || shooter.ended) return;
+  shooter.ended = true;
+  shooter.running = false;
+  shooter.firing = false;
+  cancelAnimationFrame(shooter.raf);
+  shooter.raf = 0;
+
+  const answered = shooter.answered;
+  const acc = answered ? shooter.rightCount / answered : 0;
+  const stars = shooterStars(acc, answered);
+  const durationMs = shooter.startedAt ? (Date.now() - shooter.startedAt) : 0;
+
+  // 每局只记录一次；没有答过题（比如中途退出）就不记录
+  let reward = null;
+  if (!shooter.saved && answered > 0 && currentUser && currentUser.role === "student") {
+    shooter.saved = true;
+    reward = finalizeRecord({
+      question: "雷霆战机：" + answered + " 题答对 " + shooter.rightCount +
+        " 题（正确率 " + Math.round(acc * 100) + "%）",
+      difficulty: shooter.difficulty,
+      topic: "雷霆战机 · 数学空战",
+      topicKey: "shooter",
+      rounds: 0,
+      correct: acc >= 0.6,
+      stars: stars,
+      hints: 0,
+      source: "shooter",
+      mode: "shooter",
+      durationMs: durationMs,
+      answered: answered,
+      rightCount: shooter.rightCount,
+      accuracy: acc,
+      bestCombo: shooter.bestCombo,
+      time: new Date().toLocaleString("zh-CN"),
+      ts: Date.now()
+    });
+  }
+
+  setTimeout(() => shooterSoundOver(), 260);
+  shooterDraw();
+  showShooterResult(reason, acc, stars, durationMs, reward);
+}
+
+function showShooterResult(reason, acc, stars, durationMs, reward) {
+  const overlay = $("shooterResult");
+  overlay.style.display = "flex";
+  overlay.scrollTop = 0;
+  hideShooterFeedback();
+  $("shooterQuestion").textContent = reason === "won" ? "本局结束 · 任务完成" : "本局结束 · 战机坠毁";
+  $("shooterResultTitle").textContent = reason === "won"
+    ? (acc >= 0.9 ? "🏆 完美护航！" : "任务完成！")
+    : "💥 战机坠毁";
+  $("shooterResultStars").textContent = "★".repeat(stars) + "☆".repeat(5 - stars);
+  $("shooterResultSummary").textContent =
+    "得分 " + shooter.score + " · 答对 " + shooter.rightCount + "/" + shooter.answered +
+    " · 最高连击 " + shooter.bestCombo + " · 用时 " + formatDuration(durationMs);
+
+  let rewardText = "";
+  if (reward) {
+    rewardText = "本局获得 +" + reward.xp + " XP";
+    if (reward.newBadges.length) {
+      rewardText += "，解锁徽章：" + reward.newBadges.map(id => {
+        const b = BADGES.find(x => x.id === id);
+        return b ? b.name : "";
+      }).filter(Boolean).join("、");
+    }
+    if (reward.leveledUp) rewardText += "，升级到 Lv." + reward.after.level + " " + reward.after.title;
+    rewardText += "。";
+  } else if (!currentUser || currentUser.role !== "student") {
+    rewardText = "登录学生账号后，战绩会记入学习记录。";
+  } else {
+    rewardText = "本局未答满一题，不计入学习记录。";
+  }
+  $("shooterResultReward").textContent = rewardText;
+
+  const list = $("shooterMistakes");
+  list.innerHTML = "";
+  if (!shooter.mistakes.length) {
+    const p = document.createElement("p");
+    p.className = "muted";
+    p.style.margin = "6px 0 0";
+    p.textContent = "全部答对，没有错题，漂亮！";
+    list.appendChild(p);
+  } else {
+    const title = document.createElement("p");
+    title.innerHTML = "<b>错题回顾（" + shooter.mistakes.length + "）</b>";
+    list.appendChild(title);
+    shooter.mistakes.forEach(m => {
+      const div = document.createElement("div");
+      div.className = "mistake-item";
+      const q = document.createElement("div");
+      q.className = "m-q";
+      q.textContent = m.text;
+      const a = document.createElement("div");
+      a.className = "m-a";
+      a.innerHTML = "正确答案 <b>" + escapeHtml(String(m.answer)) + "</b>" +
+        (m.chosen != null ? " · 你打的是 " + escapeHtml(String(m.chosen)) : " · 没打中");
+      const e = document.createElement("div");
+      e.className = "m-e";
+      e.textContent = m.explain;
+      div.appendChild(q); div.appendChild(a); div.appendChild(e);
+      list.appendChild(div);
+    });
+  }
+
+  $("btnShooterRetryWrong").style.display = shooter.mistakes.length ? "" : "none";
+}
+
+function shooterLoop(ts) {
+  if (!shooter.running) return;
+  if (!shooter.lastTs) shooter.lastTs = ts;
+  const dt = Math.min(0.05, (ts - shooter.lastTs) / 1000);
+  shooter.lastTs = ts;
+  shooterUpdate(dt);
+  shooterDraw();
+  if (shooter.running) shooter.raf = requestAnimationFrame(shooterLoop);
+}
+
+/* --- 进入画面 / 交互 --- */
+function prepareShooterView() {
+  stopShooterGame();
+  shooter.ended = true;
+  shooter.hp = SHOOTER_MAX_HP;
+  shooter.score = 0;
+  shooter.combo = 0;
+  shooter.answered = 0;
+  shooter.rightCount = 0;
+  shooter.total = SHOOTER_QUESTIONS;
+  shooter.mistakes = [];
+  shooter.enemies = [];
+  shooter.bullets = [];
+  shooter.particles = [];
+  shooter.question = null;
+  shooter.transition = 0;
+  shooter.firing = false;
+
+  const sel = $("selShooterDifficulty");
+  const diff = sel ? sel.value : "basic";
+  $("shooterDiffBadge").textContent = diff === "advanced" ? "进阶" : "基础";
+  $("shooterQuestion").textContent = "准备起飞…";
+  hideShooterFeedback();
+  $("shooterResult").style.display = "none";
+  $("shooterIntro").style.display = "flex";
+  updateShooterHud();
+
+  shooterResize();
+  if (!shooter.stars.length) shooterInitStars();
+  shooterDraw();
+}
+
+async function openShooterView() {
+  showView("view-shooter");
+  prepareShooterView();
+}
+
+function shooterCanvasX(clientX) {
+  const c = $("shooterCanvas");
+  const rect = c.getBoundingClientRect();
+  return ((clientX - rect.left) / rect.width) * shooter.W;
+}
+
+
+/* =========================================================================
+   十五、应用题侦探 · 金算盘失窃案
+   —— 5 个现场，每个现场一道一元一次方程应用题；解出得到线索；
+      集齐线索后对照四名嫌疑人的身高、行踪与习惯指认小偷。
+      一次案件只记一条学习记录，参与经验 / 等级 / 徽章结算。
+   ========================================================================= */
+const DETECTIVE_TOTAL = 5;
+
+const detective = {
+  state: "idle",          // idle | playing | accusing | done
+  caseData: null,
+  index: 0,
+  firstTry: 0,
+  score: 0,
+  accusationTries: 0,
+  startedAt: 0,
+  durationMs: 0
+};
+
+function dRand(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+/* 每次开局重新随机数字，但剧情和推理结构不变 */
+function buildDetectiveCase() {
+  // 现场一：行程
+  const walkSpeed = dRand(6, 8) * 10;
+  const runSpeed = dRand(10, 14) * 10;
+  const walkMin = dRand(3, 7);
+  const pathLen = walkSpeed * walkMin + runSpeed * 3;
+  const arriveMin = 5 + walkMin;
+  const arriveText = "21:" + String(arriveMin).padStart(2, "0");
+
+  // 现场二：脚印 → 身高
+  const footLen = dRand(23, 25);
+  const heightEstimate = footLen * 7;
+
+  // 现场三：浓度
+  const lowPct = [5, 10, 15][dRand(0, 2)];
+  const highPct = lowPct + 20;
+  const targetPct = lowPct + [5, 10, 15][dRand(0, 2)];
+  const totalInk = 300;
+  const highInk = ((targetPct - lowPct) * totalInk) / (highPct - lowPct);
+
+  // 现场四：利润
+  const tapePrice = dRand(2, 4);
+  const priceDiff = dRand(1, 2);
+  const batteryPrice = tapePrice + priceDiff;
+  const receiptTotal = batteryPrice * 2 + tapePrice;
+
+  // 现场五：和差倍分
+  const trophyWeight = [1200, 1500, 1800][dRand(0, 2)];
+  const weightDiff = [400, 600, 800][dRand(0, 2)];
+  const boxWeight = trophyWeight - weightDiff;
+  const totalWeight = trophyWeight + boxWeight;
+
+  const scenes = [
+    {
+      id: 1,
+      location: "校园小路",
+      title: "监控里的小偷",
+      story: "监控拍到 21:05 一个身影从教学楼出来，沿着通往旧仓库的小路走。小路全长 " + pathLen + " 米。",
+      question: "他先以每分钟 " + walkSpeed + " 米的速度走了一段，又用每分钟 " + runSpeed +
+        " 米的速度跑了 3 分钟，正好到达旧仓库。他先走了多少分钟？",
+      answer: walkMin,
+      unit: "分钟",
+      explain: "设先走了 x 分钟，则走路路程是 " + walkSpeed + "x 米，跑步路程是 " + (runSpeed * 3) +
+        " 米。\n" + walkSpeed + "x + " + (runSpeed * 3) + " = " + pathLen +
+        "，解得 x = " + walkMin + "。",
+      hints: [
+        "先设他走了 x 分钟。走路的路程 = 速度 × 时间 = " + walkSpeed + "x 米。",
+        "等量关系：走路路程 + 跑步路程 = 小路总长 " + pathLen + " 米。跑步 3 分钟的路程是 " + (runSpeed * 3) + " 米。"
+      ],
+      clueTitle: "到达时间 " + arriveText,
+      clueText: "他 21:05 出发，先走了 " + walkMin + " 分钟，在 " + arriveText + " 到达旧仓库。",
+      attempts: 0, hintLevel: 0, solutionShown: false, solved: false, points: 0
+    },
+    {
+      id: 2,
+      location: "旧仓库门口",
+      title: "泥地上的脚印",
+      story: "仓库门口有一串清晰的脚印，鞋底长度 " + footLen +
+        " 厘米。侦查员说，人的身高大约是脚长的 7 倍。",
+      question: "根据这个脚印，小偷的身高大约是多少厘米？",
+      answer: heightEstimate,
+      unit: "厘米",
+      explain: "身高 ≈ 脚长 × 7 = " + footLen + " × 7 = " + heightEstimate + " 厘米。",
+      hints: [
+        "把「身高是脚长的 7 倍」翻译成乘法：身高 = " + footLen + " × 7。",
+        "这一问不需要列方程，直接用脚印长度乘 7。"
+      ],
+      clueTitle: "身高约 " + heightEstimate + " 厘米",
+      clueText: "脚印长 " + footLen + " 厘米，按「身高 ≈ 脚长 × 7」估算，小偷身高约 " +
+        heightEstimate + " 厘米（误差 ±3 厘米）。",
+      attempts: 0, hintLevel: 0, solutionShown: false, solved: false, points: 0
+    },
+    {
+      id: 3,
+      location: "旧仓库工作台",
+      title: "洒出的蓝黑墨水",
+      story: "工作台上洒了一小滩蓝黑墨水。实验室的记录本上写着：昨天刚配过一瓶浓度为 " +
+        targetPct + "% 的蓝黑墨水。",
+      question: "实验室用浓度为 " + lowPct + "% 和 " + highPct + "% 的两种墨水，配制 " + totalInk +
+        " 克浓度为 " + targetPct + "% 的蓝黑墨水。需要 " + highPct + "% 的墨水多少克？",
+      answer: highInk,
+      unit: "克",
+      explain: "设需要 " + highPct + "% 的墨水 x 克，则 " + lowPct + "% 的墨水有 (" + totalInk +
+        " − x) 克。\n" + lowPct + "% × (" + totalInk + " − x) + " + highPct + "% × x = " +
+        targetPct + "% × " + totalInk + "，解得 x = " + highInk + " 克。",
+      hints: [
+        "设需要 " + highPct + "% 的墨水 x 克，那么 " + lowPct + "% 的墨水就是 (" + totalInk + " − x) 克。",
+        "等量关系：两瓶墨水里的「纯蓝颜料」加起来，等于配好后 " + totalInk + " 克里含的纯蓝颜料。"
+      ],
+      clueTitle: "蓝黑墨水",
+      clueText: "现场墨水浓度 " + targetPct + "%，和实验室的批改墨水一致。这种墨水只有数学老师和数学课代表能拿到。",
+      attempts: 0, hintLevel: 0, solutionShown: false, solved: false, points: 0
+    },
+    {
+      id: 4,
+      location: "学校小卖部",
+      title: "21:02 的收银记录",
+      story: "小卖部老板翻出昨晚的收银记录：21:02 有人买了 2 节电池和 1 卷胶带。",
+      question: "2 节电池和 1 卷胶带共 " + receiptTotal + " 元，每节电池比每卷胶带贵 " + priceDiff +
+        " 元。每节电池多少元？",
+      answer: batteryPrice,
+      unit: "元",
+      explain: "设胶带每卷 x 元，则电池每节 (x + " + priceDiff + ") 元。\n2(x + " + priceDiff +
+        ") + x = " + receiptTotal + "，解得 x = " + tapePrice + "，所以电池每节 " + batteryPrice + " 元。",
+      hints: [
+        "设胶带每卷 x 元，电池每节就是 (x + " + priceDiff + ") 元。",
+        "等量关系：2 节电池的钱 + 1 卷胶带的钱 = " + receiptTotal + " 元。"
+      ],
+      clueTitle: "21:02 买过电池",
+      clueText: "小偷 21:02 在小卖部买了 2 节电池和 1 卷胶带，共 " + receiptTotal +
+        " 元。旧仓库没有灯，他显然准备了照明。",
+      attempts: 0, hintLevel: 0, solutionShown: false, solved: false, points: 0
+    },
+    {
+      id: 5,
+      location: "旧仓库角落",
+      title: "奖杯和包装盒",
+      story: "仓库角落里找到了奖杯和它的包装盒，秤上显示它们一共 " + totalWeight + " 克。",
+      question: "奖杯和包装盒共重 " + totalWeight + " 克，奖杯比盒子重 " + weightDiff +
+        " 克。奖杯重多少克？",
+      answer: trophyWeight,
+      unit: "克",
+      explain: "设奖杯重 x 克，盒子重 (x − " + weightDiff + ") 克。\nx + (x − " + weightDiff +
+        ") = " + totalWeight + "，解得 x = " + trophyWeight + " 克。",
+      hints: [
+        "设奖杯重 x 克，盒子就比奖杯轻 " + weightDiff + " 克，是 (x − " + weightDiff + ") 克。",
+        "等量关系：奖杯 + 盒子 = " + totalWeight + " 克。"
+      ],
+      clueTitle: "奖杯重 " + trophyWeight + " 克",
+      clueText: "奖杯重 " + trophyWeight + " 克（盒子重 " + boxWeight +
+        " 克），确认赃物还在旧仓库——小偷只是把它藏了起来。",
+      attempts: 0, hintLevel: 0, solutionShown: false, solved: false, points: 0
+    }
+  ];
+
+  // 身高线索只对得上一个人：琳琳
+  const culpritHeight = heightEstimate + dRand(-2, 2);
+  const ajieH = heightEstimate + 14;
+  const xiaomeiH = heightEstimate - 10;
+  const laozhouH = heightEstimate + 6;
+
+  const suspects = [
+    {
+      id: "ajie",
+      name: "阿杰",
+      role: "篮球社",
+      height: ajieH,
+      facts: [
+        "身高 " + ajieH + " 厘米",
+        "21:00–21:20 在体育馆训练（教练全程在场）",
+        "没去过小卖部，也不会用广播设备"
+      ],
+      contradiction: "阿杰身高 " + ajieH + " 厘米，和线索里的 " + heightEstimate +
+        " 厘米差得太远；而且 21:00–21:20 他一直在体育馆训练，" + arriveText + " 不可能出现在旧仓库。"
+    },
+    {
+      id: "xiaomei",
+      name: "小美",
+      role: "美术社",
+      height: xiaomeiH,
+      facts: [
+        "身高 " + xiaomeiH + " 厘米",
+        "21:00–21:30 在美术教室做海报（同学作证）",
+        "用丙烯颜料，不碰蓝黑墨水"
+      ],
+      contradiction: "小美身高 " + xiaomeiH + " 厘米，和 " + heightEstimate +
+        " 厘米对不上；同学证明她 21:00–21:30 一直在美术教室，她用的也是丙烯颜料。"
+    },
+    {
+      id: "laozhou",
+      name: "老周",
+      role: "校工",
+      height: laozhouH,
+      facts: [
+        "身高 " + laozhouH + " 厘米",
+        "21:00–21:30 在门卫室值班（监控）",
+        "有钥匙，但不会用广播设备"
+      ],
+      contradiction: "老周身高 " + laozhouH + " 厘米，和 " + heightEstimate +
+        " 厘米差 " + Math.abs(laozhouH - heightEstimate) +
+        " 厘米；监控显示他 21:00–21:30 一直在门卫室，而且他不会用广播设备。"
+    },
+    {
+      id: "linlin",
+      name: "琳琳",
+      role: "广播站 · 数学课代表",
+      height: culpritHeight,
+      facts: [
+        "身高 " + culpritHeight + " 厘米",
+        "21:00–21:15 在广播室，但录音是提前录好的，没人看见她",
+        "数学课代表，有教室钥匙，会用录音设备",
+        "21:02 去小卖部买过电池（老板记得）"
+      ],
+      culprit: true
+    }
+  ];
+
+  return {
+    title: "金算盘失窃案",
+    scenes, suspects,
+    culpritId: "linlin",
+    heightEstimate,
+    arriveText
+  };
+}
+
+/* --- 视图切换 / 进度 --- */
+function detectiveShow(block) {
+  ["detectiveIntro", "detectiveSceneCard", "detectiveAccuse", "detectiveEnd"].forEach(id => {
+    const el = $(id);
+    if (el) el.style.display = id === block ? "" : "none";
+  });
+}
+
+function updateDetectiveProgress() {
+  if (!detective.caseData) return;
+  const solved = detective.caseData.scenes.filter(s => s.solved).length;
+  $("detectiveProgressText").textContent = "线索 " + solved + " / " + DETECTIVE_TOTAL;
+  $("detectiveScoreText").textContent = "得分 " + detective.score;
+  $("detectiveDots").innerHTML = detective.caseData.scenes.map((s, i) => {
+    const cls = s.solved ? "done" : (i === detective.index && detective.state === "playing" ? "current" : "");
+    return '<span class="detective-dot ' + cls + '">' + (s.solved ? "✓" : (i + 1)) + "</span>";
+  }).join("");
+}
+
+function updateDetectiveEntry() {
+  const btn = $("btnDetectiveEntry");
+  if (!btn) return;
+  btn.textContent = detective.state === "playing" ? "继续调查"
+    : detective.state === "accusing" ? "继续结案"
+    : detective.state === "done" ? "查看结案报告" : "进入案件";
+}
+
+function detectiveSetFeedback(text, kind) {
+  const el = $("detectiveFeedback");
+  if (!el) return;
+  el.textContent = text || "";
+  el.className = "detective-feedback" + (kind ? " " + kind : "");
+}
+
+function currentDetectiveScene() {
+  if (!detective.caseData) return null;
+  return detective.caseData.scenes[detective.index] || null;
+}
+
+function renderDetectiveScene() {
+  const s = currentDetectiveScene();
+  if (!s) return;
+  $("detectiveSceneIndex").textContent = "现场 " + (detective.index + 1) + " / " + DETECTIVE_TOTAL;
+  $("detectiveSceneTitle").textContent = s.title;
+  $("detectiveStory").textContent = s.story;
+  $("detectiveQuestion").textContent = s.question;
+  $("detectiveAnswer").value = "";
+  $("detectiveAnswer").disabled = false;
+  $("btnDetectiveSubmit").disabled = false;
+  $("btnDetectiveHint").disabled = false;
+  $("btnDetectiveHint").textContent = "请求提示";
+  $("btnDetectiveSolution").style.display = "none";
+  $("detectiveHintBox").style.display = "none";
+  $("detectiveHintBox").innerHTML = "";
+  $("detectiveClueBox").style.display = "none";
+  $("detectiveClueText").textContent = "";
+  $("btnDetectiveNext").textContent = detective.index === DETECTIVE_TOTAL - 1 ? "前往指认" : "前往下一处";
+  detectiveSetFeedback("", "");
+  $("detectiveProgressCard").style.display = "";
+  detectiveShow("detectiveSceneCard");
+  updateDetectiveProgress();
+}
+
+function startDetectiveCase() {
+  detective.caseData = buildDetectiveCase();
+  detective.state = "playing";
+  detective.index = 0;
+  detective.firstTry = 0;
+  detective.score = 0;
+  detective.accusationTries = 0;
+  detective.startedAt = Date.now();
+  detective.durationMs = 0;
+  renderDetectiveScene();
+  updateDetectiveEntry();
+  ensureAudio();
+}
+
+function submitDetectiveAnswer() {
+  const s = currentDetectiveScene();
+  if (!s || s.solved || detective.state !== "playing") return;
+
+  const raw = $("detectiveAnswer").value.trim();
+  if (!raw) {
+    detectiveSetFeedback("先写下你的答案再提交。", "bad");
+    $("detectiveAnswer").focus();
+    return;
+  }
+  const value = parseFloat(raw.replace(/[^\d.\-]/g, ""));
+  if (!isFinite(value)) {
+    detectiveSetFeedback("答案要填数字，例如 12 或 3.5。", "bad");
+    return;
+  }
+
+  if (Math.abs(value - s.answer) < 0.001) {
+    const clean = s.attempts === 0 && s.hintLevel === 0 && !s.solutionShown;
+    s.points = s.solutionShown ? 30 : clean ? 100 : 60;
+    if (clean) detective.firstTry++;
+    detective.score += s.points;
+    s.solved = true;
+
+    detectiveSetFeedback("✅ 答对了！\n" + s.explain, "ok");
+    $("detectiveClueText").textContent = s.clueText;
+    $("detectiveClueBox").style.display = "";
+    $("detectiveAnswer").disabled = true;
+    $("btnDetectiveSubmit").disabled = true;
+    $("btnDetectiveHint").disabled = true;
+    $("btnDetectiveSolution").style.display = "none";
+    if (s.solutionShown) {
+      $("detectiveHintBox").style.display = "";
+      $("detectiveHintBox").innerHTML = "<p><b>完整解法：</b>" + escapeHtml(s.explain) + "</p>";
+    }
+    playTone(660, 0, 0.09, "sine", 0.06);
+    playTone(990, 0.07, 0.12, "sine", 0.05);
+    updateDetectiveProgress();
+    updateDetectiveEntry();
+  } else {
+    s.attempts++;
+    detectiveSetFeedback(
+      s.attempts === 1
+        ? "还不对。先想清楚：这道题要我们求什么？把它设成 x，再找等量关系。"
+        : "再检查一下等量关系。可以点「请求提示」，或者把已知条件一条条列出来。",
+      "bad"
+    );
+    if (s.attempts >= 3 || s.hintLevel >= 2) {
+      $("btnDetectiveSolution").style.display = "";
+    }
+    playTone(180, 0, 0.16, "sawtooth", 0.05);
+  }
+}
+
+function showDetectiveHint() {
+  const s = currentDetectiveScene();
+  if (!s || s.solved || s.hintLevel >= 2) return;
+  s.hintLevel++;
+  const box = $("detectiveHintBox");
+  box.style.display = "";
+  box.innerHTML = s.hints.slice(0, s.hintLevel).map((h, i) =>
+    "<p><b>提示 " + (i + 1) + "：</b>" + escapeHtml(h) + "</p>"
+  ).join("");
+  $("btnDetectiveHint").textContent = s.hintLevel >= 2 ? "提示已用完" : "再看一条提示";
+  if (s.hintLevel >= 2) {
+    $("btnDetectiveHint").disabled = true;
+    $("btnDetectiveSolution").style.display = "";
+  }
+}
+
+function showDetectiveSolution() {
+  const s = currentDetectiveScene();
+  if (!s || s.solved) return;
+  if (!confirm("看完整解法会直接公布答案，这一题只记 30 分。确定要看吗？")) return;
+  s.solutionShown = true;
+  s.solved = true;
+  s.points = 30;
+  detective.score += 30;
+  const box = $("detectiveHintBox");
+  box.style.display = "";
+  box.innerHTML = "<p><b>完整解法：</b>" + escapeHtml(s.explain) + "</p>";
+  $("detectiveClueText").textContent = s.clueText;
+  $("detectiveClueBox").style.display = "";
+  $("detectiveAnswer").disabled = true;
+  $("btnDetectiveSubmit").disabled = true;
+  $("btnDetectiveHint").disabled = true;
+  $("btnDetectiveSolution").style.display = "none";
+  detectiveSetFeedback("先看解法也没关系，把等量关系读懂，下次就能自己做出来。", "bad");
+  updateDetectiveProgress();
+}
+
+function nextDetectiveScene() {
+  if (detective.state !== "playing") return;
+  detective.index++;
+  if (detective.index >= DETECTIVE_TOTAL) {
+    detective.state = "accusing";
+    showDetectiveAccuse();
+  } else {
+    renderDetectiveScene();
+  }
+  updateDetectiveEntry();
+}
+
+function showDetectiveAccuse() {
+  const data = detective.caseData;
+  if (!data) return;
+  $("detectiveProgressCard").style.display = "none";
+  detectiveShow("detectiveAccuse");
+
+  $("detectiveClueBoard").innerHTML = data.scenes.map((s, i) =>
+    '<div class="clue-board-item">' +
+      '<div class="cb-title">线索 ' + (i + 1) + " · " + escapeHtml(s.clueTitle) + "</div>" +
+      '<div class="cb-text">' + escapeHtml(s.clueText) + "</div>" +
+    "</div>"
+  ).join("");
+
+  $("detectiveSuspects").innerHTML = data.suspects.map(sp =>
+    '<div class="suspect-card" data-suspect="' + sp.id + '">' +
+      "<h3>" + escapeHtml(sp.name) + '<span class="s-role">' + escapeHtml(sp.role) + "</span></h3>" +
+      "<ul>" + sp.facts.map(f => "<li>" + escapeHtml(f) + "</li>").join("") + "</ul>" +
+      '<button class="btn ghost small" type="button" data-accuse="' + sp.id + '">指认 ' + escapeHtml(sp.name) + "</button>" +
+    "</div>"
+  ).join("");
+
+  $("detectiveAccuseFeedback").textContent = "";
+  $("detectiveAccuseFeedback").className = "detective-feedback";
+}
+
+function accuseDetective(id) {
+  const data = detective.caseData;
+  if (!data || detective.state !== "accusing") return;
+  const sp = data.suspects.find(x => x.id === id);
+  if (!sp) return;
+
+  if (id === data.culpritId) {
+    finishDetectiveCase();
+  } else {
+    detective.accusationTries++;
+    const el = $("detectiveAccuseFeedback");
+    el.className = "detective-feedback bad";
+    el.textContent = "还不是" + sp.name + "。" + sp.contradiction + " 再对照一下线索板。";
+    playTone(180, 0, 0.16, "sawtooth", 0.05);
+  }
+}
+
+function detectiveStars(score) {
+  if (score >= 680) return 5;
+  if (score >= 560) return 4;
+  if (score >= 440) return 3;
+  if (score >= 320) return 2;
+  return 1;
+}
+
+function finishDetectiveCase() {
+  if (detective.state !== "accusing") return;
+  detective.state = "done";
+  detective.durationMs = detective.startedAt ? (Date.now() - detective.startedAt) : 0;
+  const bonus = detective.accusationTries === 0 ? 200 : 100;
+  detective.score += bonus;
+  const stars = detectiveStars(detective.score);
+  const accuracy = detective.firstTry / DETECTIVE_TOTAL;
+  const perfect = detective.firstTry === DETECTIVE_TOTAL && detective.accusationTries === 0;
+
+  let reward = null;
+  if (currentUser && currentUser.role === "student") {
+    reward = finalizeRecord({
+      question: "应用题侦探：5 条线索，一次答对 " + detective.firstTry + " 题，破案得分 " + detective.score,
+      difficulty: "basic",
+      topic: "应用题侦探 · 金算盘失窃案",
+      topicKey: "detective",
+      rounds: 0,
+      correct: true,
+      stars: stars,
+      hints: 0,
+      source: "detective",
+      mode: "detective",
+      durationMs: detective.durationMs,
+      answered: DETECTIVE_TOTAL,
+      rightCount: detective.firstTry,
+      accuracy: accuracy,
+      score: detective.score,
+      perfect: perfect,
+      time: new Date().toLocaleString("zh-CN"),
+      ts: Date.now()
+    });
+  }
+
+  $("detectiveProgressCard").style.display = "none";
+  detectiveShow("detectiveEnd");
+  $("detectiveEndTitle").textContent = "🎉 案件告破！";
+  $("detectiveEndStory").textContent =
+    "琳琳承认了：她只是想借奖杯去广播站拍一张学园祭的宣传照，拍完就还回来，没想到会闹这么大。" +
+    "奖杯完好无损地回到了数学教室。";
+  $("detectiveEndStars").innerHTML = "★".repeat(stars) + '<span class="off">☆</span>'.repeat(5 - stars);
+  $("detectiveEndScore").textContent =
+    "破案得分 " + detective.score + " · 一次答对 " + detective.firstTry + "/" + DETECTIVE_TOTAL +
+    " · 指认 " + (detective.accusationTries === 0 ? "一次成功" : "试了 " + (detective.accusationTries + 1) + " 次") +
+    " · 用时 " + formatDuration(detective.durationMs);
+
+  const xpEl = $("detectiveEndXp");
+  const badgeEl = $("detectiveEndBadges");
+  const hintEl = $("detectiveEndRewardHint");
+  const badgesEl = $("detectiveEndNewBadges");
+
+  if (reward) {
+    xpEl.textContent = "+" + reward.xp + " XP";
+    hintEl.textContent = "经验值";
+    badgeEl.textContent = reward.newBadges.length;
+    badgesEl.innerHTML = reward.newBadges.map(bid => {
+      const b = BADGES.find(x => x.id === bid);
+      return b ? '<span class="new-badge">' + b.icon + " " + b.name + "</span>" : "";
+    }).join("");
+    if (reward.leveledUp) {
+      badgesEl.innerHTML += '<span class="new-badge">⬆️ 升到 Lv.' + reward.after.level + " " + reward.after.title + "</span>";
+    }
+  } else {
+    xpEl.textContent = "—";
+    hintEl.textContent = "登录学生账号后记录成绩";
+    badgeEl.textContent = "0";
+    badgesEl.innerHTML = "";
+  }
+  $("detectiveEndTime").textContent = formatDuration(detective.durationMs);
+  if (!reward) playCompleteSound();   // 学生账号的完成音效由 finalizeRecord 播放
+  updateDetectiveEntry();
+}
+
+function resetDetective() {
+  detective.state = "idle";
+  detective.caseData = null;
+  detective.index = 0;
+  detective.firstTry = 0;
+  detective.score = 0;
+  detective.accusationTries = 0;
+  detective.startedAt = 0;
+  detective.durationMs = 0;
+  const progress = $("detectiveProgressCard");
+  if (progress) progress.style.display = "none";
+  detectiveShow("detectiveIntro");
+  updateDetectiveEntry();
+}
+
+function openDetectiveView() {
+  showView("view-detective");
+  if (detective.state === "idle") {
+    detectiveShow("detectiveIntro");
+    $("detectiveProgressCard").style.display = "none";
+  } else if (detective.state === "playing") {
+    detectiveShow("detectiveSceneCard");
+    $("detectiveProgressCard").style.display = "";
+    updateDetectiveProgress();
+  } else if (detective.state === "accusing") {
+    detectiveShow("detectiveAccuse");
+    $("detectiveProgressCard").style.display = "none";
+  } else {
+    detectiveShow("detectiveEnd");
+    $("detectiveProgressCard").style.display = "none";
+  }
+  updateDetectiveEntry();
+}
+
+
+/* =========================================================================
+   十二、事件绑定与初始化
+   ========================================================================= */
+
+/* 首页：模式单选卡片高亮 */
+document.querySelectorAll('input[name="gameMode"]').forEach(r => {
+  r.addEventListener("change", () => {
+    document.querySelectorAll(".mode-option").forEach(o => o.classList.remove("active"));
+    document.querySelector('label[for="' + r.id + '"]').classList.add("active");
+  });
+});
+
+/* 首页：开始闯关 —— 切题、进入对应模式 */
+$("btnStart").addEventListener("click", async () => {
+  // 必须有学生身份；教师账号不能进入学生闯关
+  if (!currentUser) { showView("view-login"); return; }
+  if (currentUser.role === "teacher") { showView("view-teacher"); return; }
+  if (!studentName) studentName = currentUser.name || currentUser.username;
+
+  // 防止口令框已经打开时重复点击
+  if ($("vaultGate").classList.contains("show")) return;
+
+  // API 配置已内嵌（见顶部常量区），这里按模式自动切换接口、密钥与模型
+  selectedDifficulty = $("selDifficulty").value;
+  selectedTopic      = $("selTopic").value;
+  gameMode = document.querySelector('input[name="gameMode"]:checked').value;
+
+  // 图片批改模式开关校验（暂时停用时防止误入）
+  if (gameMode === "image" && !ENABLE_IMAGE_MODE) {
+    toast("图片批改模式暂时停用，请先用文字闯关模式");
+    return;
+  }
+
+  // 密钥以密文保存：第一次开始前需要输入口令，解出的密钥只留在本页内存
+  if (!TEXT_API_KEY || !VISION_API_KEY) {
+    const unlocked = await requestUnlock();
+    if (!unlocked) return;   // 取消则留在首页
+  }
+
+  if (gameMode === "image") {
+    apiUrl = VISION_API_URL;
+    apiKey = VISION_API_KEY;
+    model  = IMAGE_MODEL;
+  } else {
+    apiUrl = TEXT_API_URL;
+    apiKey = TEXT_API_KEY;
+    model  = TEXT_MODEL;
+  }
+
+  // 设置界面与模式
+  $("badgeMode").textContent = gameMode === "text" ? "文字闯关" : "图片批改";
+  $("badgeDifficulty").textContent = selectedDifficulty === "basic" ? "基础" : "进阶";
+  $("controlsText").style.display  = gameMode === "text"  ? "" : "none";
+  $("controlsImage").style.display = gameMode === "image" ? "" : "none";
+  showView("view-game");
+
+  // 动态出题并初始化
+  await loadNewQuestion($("btnStart"), "开始闯关");
+});
+
+/* 动态出题并重置对话（供【开始闯关】与【换一道题】复用）
+   triggerBtn：触发按钮，出题期间禁用以防重复点击 */
+async function loadNewQuestion(triggerBtn, restoreLabel) {
+  $("questionText").textContent = "正在为你出新题……";
+  if (triggerBtn) { triggerBtn.disabled = true; triggerBtn.textContent = "正在出题…"; }
+
+  try {
+    // 动态生成题目（使用与闯关相同的接口）；失败则用内置题目兜底
+    currentQuestion = await generateQuestion(selectedDifficulty, selectedTopic);
+    toast("AI 已为你生成新题目");
+  } catch (err) {
+    currentQuestion = QUESTIONS[selectedDifficulty];
+    toast("出题失败，已使用内置题目");
+  } finally {
+    if (triggerBtn) { triggerBtn.disabled = false; triggerBtn.textContent = restoreLabel; }
+  }
+
+  // 展示题目并重置对话/进度
+  $("questionText").textContent = currentQuestion;
+  if (gameMode === "text") resetTextGame();
+  else resetImageGame();
+}
+
+/* 首页：返回按钮 */
+$("btnBackHome").addEventListener("click", () => showView("view-home"));
+
+/* 模式 A 事件 */
+$("btnSubmitText").addEventListener("click", () => submitTextAnswer(false));
+$("btnHint").addEventListener("click", () => submitTextAnswer(true));
+$("btnResetText").addEventListener("click", () => {
+  if (isBusy) return;
+  resetTextGame();
+  toast("已重置，重新开始思考");
+});
+// 换一道题：按当前难度/题型重新出题，并清空对话与进度
+$("btnChangeQuestion").addEventListener("click", async () => {
+  if (isBusy) return;
+  if (!confirm("确定要换一道新题目吗？当前对话和进度会清空。")) return;
+  await loadNewQuestion($("btnChangeQuestion"), "换一道题");
+});
+// Enter 换行、Ctrl/Cmd + Enter 提交
+$("inpAnswer").addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+    e.preventDefault();
+    submitTextAnswer(false);
+  }
+});
+
+/* 学生主动勾选“我已掌握这道题”：立即结束本题，教师端记为正确。
+   轮数口径：还没和老师对话过 → 记 1 轮；已经对话过 → 按实际对话轮数记录。 */
+$("chkMastered").addEventListener("change", (e) => {
+  if (!e.target.checked) return;          // 只有勾上时触发
+  if (isBusy) { e.target.checked = false; toast("老师正在回复，请稍候"); return; }
+
+  const rounds = Math.max(1, currentRoundCount);   // 未对话记 1 轮，已对话按实际轮数
+  starCount = MAX_STARS;                           // 学生声明已掌握 → 直接给满 5 颗星
+  updateProgressUI();
+  recordQuestionResult(rounds, "self");
+  addBubble("sys", "你标记了「我已掌握这道题」，本题结束，已记入学习记录（" + rounds + " 轮）。");
+  toast("已记为掌握（" + rounds + " 轮）");
+  setTimeout(showReview, 500);
+});
+
+/* 模式 B 事件 */
+$("inpFile").addEventListener("change", (e) => handleFileSelect(e.target.files[0]));
+$("btnClearImage").addEventListener("click", clearPendingImage);
+$("btnSubmitImage").addEventListener("click", submitImage);
+$("inpImageAnswer").addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+    e.preventDefault();
+    submitImage();
+  }
+});
+$("btnResetImage").addEventListener("click", () => {
+  if (isBusy) return;
+  resetImageGame();
+  toast("已清空图片与对话");
+});
+// 图片模式：换一道题（与文字模式同一套出题逻辑）
+$("btnChangeImageQuestion").addEventListener("click", async () => {
+  if (isBusy) return;
+  if (!confirm("确定要换一道新题目吗？当前对话和进度会清空。")) return;
+  await loadNewQuestion($("btnChangeImageQuestion"), "换一道题");
+});
+
+// 图片模式下的“我已掌握”勾选：口径与文字模式一致
+$("chkMasteredImg").addEventListener("change", (e) => {
+  if (!e.target.checked) return;
+  if (isBusy) { e.target.checked = false; toast("老师正在回复，请稍候"); return; }
+  const rounds = Math.max(1, currentRoundCount);
+  starCount = MAX_STARS;      // 学生声明已掌握 → 直接给满 5 颗星
+  updateProgressUI();
+  recordQuestionResult(rounds, "self", "image");
+  addBubble("sys", "你标记了「我已掌握这道题」，本题结束，已记入学习记录（" + rounds + " 轮）。");
+  toast("已记为掌握（" + rounds + " 轮）");
+  setTimeout(showReview, 500);
+});
+
+/* 复盘页事件 */
+$("btnRetry").addEventListener("click", () => {
+  // 重新挑战本题：保留题目，清空进度与对话（按当前模式选择重置逻辑）
+  if (gameMode === "image") resetImageGame(); else resetTextGame();
+  showView("view-game");
+});
+$("btnNewQuestion").addEventListener("click", () => {
+  // 直接出新题：复用首页的“开始闯关”逻辑（回到首页后自动点一次）
+  showView("view-home");
+  toast("可在首页调整难度与题型，然后点【开始闯关】出新题");
+});
+
+/* 登录页：登录 / 注册切换 + Enter 提交 */
+$("btnLogin").addEventListener("click", doLogin);
+$("loginPass").addEventListener("keydown", (e) => { if (e.key === "Enter") doLogin(); });
+$("loginUser").addEventListener("keydown", (e) => { if (e.key === "Enter") $("loginPass").focus(); });
+
+$("btnShowRegister").addEventListener("click", () => showLoginPane(true));
+$("btnBackLogin").addEventListener("click", () => showLoginPane(false));
+$("btnRegister").addEventListener("click", doRegister);
+$("regUser").addEventListener("keydown", (e) => { if (e.key === "Enter") $("regName").focus(); });
+$("regName").addEventListener("keydown", (e) => { if (e.key === "Enter") $("regPass").focus(); });
+$("regPass").addEventListener("keydown", (e) => { if (e.key === "Enter") $("regPass2").focus(); });
+$("regPass2").addEventListener("keydown", (e) => { if (e.key === "Enter") doRegister(); });
+
+/* 右上角：退出登录 / 音效开关 */
+$("btnLogout").addEventListener("click", doLogout);
+$("btnSound").addEventListener("click", () => {
+  soundOn = !soundOn;
+  updateSoundButton();
+  if (soundOn) { ensureAudio(); playTone(660, 0, 0.12, "sine", 0.06); }
+  toast(soundOn ? "音效已开启" : "音效已关闭");
+});
+
+/* 成就墙：打开 / 关闭 */
+$("btnOpenBadges").addEventListener("click", openBadgeModal);
+$("btnCloseBadges").addEventListener("click", closeBadgeModal);
+$("badgeModal").addEventListener("click", (e) => {
+  if (e.target.id === "badgeModal") closeBadgeModal();
+});
+
+/* 教师端：手动刷新 */
+$("btnTeacherRefresh").addEventListener("click", () => refreshTeacherData(false));
+
+/* 学生答题记录弹窗：关闭按钮 / 点击遮罩 / Esc 键 */
+$("btnCloseStudentQuestions").addEventListener("click", closeStudentQuestions);
+$("studentQuestionsModal").addEventListener("click", (e) => {
+  if (e.target.id === "studentQuestionsModal") closeStudentQuestions();
+});
+
+/* 学生端：查看同学情况 / 返回首页 */
+$("btnOpenClass").addEventListener("click", openClassView);
+$("btnClassBack").addEventListener("click", () => showView("view-home"));
+
+/* =========================================================================
+   雷霆战机：入口 / 起飞 / 再来一局 / 错题重练 / 返回
+   ========================================================================= */
+$("btnShooterStart").addEventListener("click", openShooterView);
+$("btnShooterBegin").addEventListener("click", () => startShooterGame());
+$("btnShooterAgain").addEventListener("click", () => startShooterGame());
+
+$("btnShooterRetryWrong").addEventListener("click", () => {
+  const queue = shooter.mistakes.map(m => ({ text: m.text, answer: m.answer, explain: m.explain }));
+  if (!queue.length) { toast("这局没有错题"); return; }
+  startShooterGame({ queue });
+});
+
+$("btnShooterHome").addEventListener("click", () => {
+  stopShooterGame();
+  showView("view-home");
+});
+
+$("btnShooterBack").addEventListener("click", () => {
+  if (shooter.running && !confirm("本局还没结束，退出不会记录成绩，确定离开吗？")) return;
+  stopShooterGame();
+  showView("view-home");
+});
+
+/* =========================================================================
+   应用题侦探：入口 / 开始 / 提交 / 提示 / 指认 / 返回
+   ========================================================================= */
+$("btnDetectiveEntry").addEventListener("click", openDetectiveView);
+$("btnDetectiveStart").addEventListener("click", startDetectiveCase);
+
+$("btnDetectiveSubmit").addEventListener("click", submitDetectiveAnswer);
+$("detectiveAnswer").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") { e.preventDefault(); submitDetectiveAnswer(); }
+});
+
+$("btnDetectiveHint").addEventListener("click", showDetectiveHint);
+$("btnDetectiveSolution").addEventListener("click", showDetectiveSolution);
+$("btnDetectiveNext").addEventListener("click", nextDetectiveScene);
+
+$("detectiveSuspects").addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-accuse]");
+  if (btn) accuseDetective(btn.getAttribute("data-accuse"));
+});
+
+$("btnDetectiveBack").addEventListener("click", () => {
+  if ((detective.state === "playing" || detective.state === "accusing") &&
+      !confirm("案件还没结，离开后可以回来继续。确定返回首页吗？")) return;
+  showView("view-home");
+});
+
+$("btnDetectiveRestart").addEventListener("click", () => {
+  if ((detective.state === "playing" || detective.state === "accusing") &&
+      !confirm("重新调查会放弃当前进度，确定吗？")) return;
+  startDetectiveCase();
+});
+
+$("btnDetectiveAgain").addEventListener("click", startDetectiveCase);
+$("btnDetectiveEndHome").addEventListener("click", () => showView("view-home"));
+
+/* 画布输入：鼠标 / 手指拖动移动，按住开火；键盘 A/D、←/→ 移动，空格开火 */
+const shooterCanvasEl = $("shooterCanvas");
+
+function shooterClampX(x) {
+  return Math.max(34, Math.min(shooter.W - 34, x));
+}
+
+shooterCanvasEl.addEventListener("pointermove", (e) => {
+  if (!shooter.running) return;
+  shooter.ship.x = shooterClampX(shooterCanvasX(e.clientX));
+});
+
+shooterCanvasEl.addEventListener("pointerdown", (e) => {
+  e.preventDefault();
+  ensureAudio();
+  if (!shooter.running) return;
+  shooter.ship.x = shooterClampX(shooterCanvasX(e.clientX));
+  shooter.firing = true;
+  shooterFire();
+});
+
+window.addEventListener("pointerup", () => { shooter.firing = false; });
+window.addEventListener("pointercancel", () => { shooter.firing = false; });
+
+document.addEventListener("keydown", (e) => {
+  if (!$("view-shooter").classList.contains("active") || !shooter.running) return;
+  const k = e.key;
+  if (k === "ArrowLeft" || k === "a" || k === "A") { shooter.keys.left = true; e.preventDefault(); }
+  if (k === "ArrowRight" || k === "d" || k === "D") { shooter.keys.right = true; e.preventDefault(); }
+  if (k === " " || k === "ArrowUp") { e.preventDefault(); shooter.firing = true; shooterFire(); }
+});
+
+document.addEventListener("keyup", (e) => {
+  const k = e.key;
+  if (k === "ArrowLeft" || k === "a" || k === "A") shooter.keys.left = false;
+  if (k === "ArrowRight" || k === "d" || k === "D") shooter.keys.right = false;
+  if (k === " " || k === "ArrowUp") shooter.firing = false;
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    shooter.firing = false;
+    shooter.keys.left = false;
+    shooter.keys.right = false;
+  }
+});
+
+window.addEventListener("resize", () => {
+  if (!$("view-shooter").classList.contains("active")) return;
+  shooterResize();
+  if (!shooter.running) {
+    if (!shooter.stars.length) shooterInitStars();
+    shooterDraw();
+  }
+});
+
+/* 教师端：清空全部学习记录（记录清空后等级与徽章也会一起重置） */
+$("btnClearRecords").addEventListener("click", async () => {
+  const records = getDisplayRecords();
+  if (!records.length) { toast("暂无记录"); return; }
+  if (!confirm("确定清空全部学习记录吗？所有学生的记录、等级与徽章都会重置。")) return;
+  try {
+    await apiRequest("/api/records", { method: "DELETE" });
+  } catch (e) {
+    toast("清空失败：" + e.message);
+    return;
+  }
+  allRecords = [];
+  localDB.seenBadges.clear();
+  lastRecord = null;
+  lastReward = null;
+  renderTeacherDashboard();
+  toast("已清空学习记录");
+});
+
+/* Esc 关闭所有弹窗 */
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    closeStudentQuestions();
+    closeBadgeModal();
+  }
+});
+
+/* 浏览器要求音频必须由用户手势触发：第一次点击时把 AudioContext 激活 */
+document.addEventListener("pointerdown", () => ensureAudio(), { once: true });
+
+/* =========================================================================
+   十三、初始化：始终从登录页开始（账号与记录都在内存里，无需任何服务器）
+   ========================================================================= */
+function initApp() {
+  seedLocalAccounts();      // 预置教师 / 学生账号（每次打开页面重新生成）
+  renderStageMap();         // 五步关卡地图
+  renderBadgeGrid([]);      // 成就墙先渲染成“全部未解锁”
+  updateProgressUI();       // 星星 / 进度占位
+  updateSoundButton();
+
+  $("localBanner").style.display = "";   // 首页显示“纯单机模式”说明
+  $("classCard").style.display = "";     // 单机版同样支持同学榜
+  $("userBar").style.display = "none";
+
+  showLoginPane(false);
+  showView("view-login");
+}
+
+initApp();
+</script>
+</body>
+</html>
